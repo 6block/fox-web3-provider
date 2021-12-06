@@ -32,7 +32,7 @@ class TrustWeb3Provider extends EventEmitter {
   setAddress(address) {
     const lowerAddress = (address || "").toLowerCase();
     this.address = lowerAddress;
-    this.ready = !!address;
+    this.ready = true;
     for (var i = 0; i < window.frames.length; i++) {
       const frame = window.frames[i];
       if (frame.ethereum && frame.ethereum.isTrust) {
@@ -164,10 +164,11 @@ class TrustWeb3Provider extends EventEmitter {
         case "personal_ecRecover":
           return this.personal_ecRecover(payload);
         case "eth_signTypedData_v3":
-          return this.eth_signTypedData(payload, false);
+          return this.eth_signTypedData(payload, "V3");
         case "eth_signTypedData":
+          return this.eth_signTypedData(payload, "V1");
         case "eth_signTypedData_v4":
-          return this.eth_signTypedData(payload, true);
+          return this.eth_signTypedData(payload, "V4");
         case "eth_sendTransaction":
           return this.eth_sendTransaction(payload);
         case "eth_requestAccounts":
@@ -176,6 +177,8 @@ class TrustWeb3Provider extends EventEmitter {
           return this.wallet_watchAsset(payload);
         case "wallet_addEthereumChain":
           return this.wallet_addEthereumChain(payload);
+        case "wallet_switchEthereumChain":
+          return this.wallet_switchEtherumChain(payload);
         case "eth_newFilter":
         case "eth_newBlockFilter":
         case "eth_newPendingTransactionFilter":
@@ -189,6 +192,7 @@ class TrustWeb3Provider extends EventEmitter {
           // call upstream rpc
           this.callbacks.delete(payload.id);
           this.wrapResults.delete(payload.id);
+          payload.jsonrpc = "2.0";
           return this.rpc
             .call(payload)
             .then((response) => {
@@ -251,13 +255,65 @@ class TrustWeb3Provider extends EventEmitter {
     });
   }
 
-  eth_signTypedData(payload, useV4) {
-    const message = JSON.parse(payload.params[1]);
-    const hash = TypedDataUtils.sign(message, useV4);
-    this.postMessage("signTypedMessage", payload.id, {
-      data: "0x" + hash.toString("hex"),
-      raw: payload.params[1],
-    });
+  _processMetamaskV1SignParam(data) {
+    if (typeof data === "object") {
+      return {
+        message: data,
+        params: JSON.stringify(data),
+      };
+    } else if (typeof data === "string") {
+      return {
+        message: JSON.parse(data),
+        params: data,
+      }
+    } else {
+      throw Error("signTypedDataV1 params error ", data);
+    }
+  }
+
+  eth_signTypedData(payload, version) {
+    const messageName = `signTypedMessage${version}`;
+    switch(version) {
+      case "V1": {
+        let message;
+        let params;
+        try {
+          const res = this._processMetamaskV1SignParam(payload.params[1]);
+          // message = res.message;
+          params = res.params;
+        } catch (err) {
+          // that's for metamask test dapp error
+          console.log(err);
+          const res = this._processMetamaskV1SignParam(payload.params[0]);
+          // message = res.message;
+          params = res.params;
+        }
+        // const hash = TypedDataUtils.sign(message, true);
+        this.postMessage(messageName, payload.id, {
+          // data: "0x" + hash.toString("hex"),
+          raw: params,
+        });
+        break;
+      }
+      case "V3": {
+        const message = JSON.parse(payload.params[1]);
+        const hash = TypedDataUtils.sign(message, false);
+        this.postMessage(messageName, payload.id, {
+          data: "0x" + hash.toString("hex"),
+          raw: payload.params[1],
+        });
+        break;
+      }
+      case "V4": {
+        const message = JSON.parse(payload.params[1]);
+        const hash = TypedDataUtils.sign(message, true);
+        this.postMessage(messageName, payload.id, {
+          data: "0x" + hash.toString("hex"),
+          raw: payload.params[1],
+        });
+        break;
+      }
+    }
   }
 
   eth_sendTransaction(payload) {
@@ -282,18 +338,22 @@ class TrustWeb3Provider extends EventEmitter {
     this.postMessage("addEthereumChain", payload.id, payload.params[0]);
   }
 
+  wallet_switchEtherumChain(payload) {
+    this.postMessage("switchEthereumChain", payload.id, payload.params[0]);
+  }
   /**
    * @private Internal js -> native message handler
    */
   postMessage(handler, id, data) {
-    if (this.ready || handler === "requestAccounts") {
+    console.log("====> hander: ", handler);
+    if (this.ready || handler === "requestAccounts" || handler === "switchEthereumChain") {
       let object = {
         id: id,
         name: handler,
         object: data,
       };
-      if (window.trustwallet.postMessage) {
-        window.trustwallet.postMessage(object);
+      if (window.foxwallet.postMessage) {
+        window.foxwallet.postMessage(object);
       } else {
         // old clients
         window.webkit.messageHandlers[handler].postMessage(object);
@@ -312,12 +372,13 @@ class TrustWeb3Provider extends EventEmitter {
     let callback = this.callbacks.get(id);
     let wrapResult = this.wrapResults.get(id);
     let data = { jsonrpc: "2.0", id: originId };
-    if (typeof result === "object" && result.jsonrpc && result.result) {
+    if (result && typeof result === "object" && result.jsonrpc && result.result) {
       data.result = result.result;
     } else {
       data.result = result;
     }
     if (this.isDebug) {
+      console.log("<== wrapResult: ", wrapResult);
       console.log(
         `<== sendResponse id: ${id}, result: ${JSON.stringify(
           result
@@ -354,9 +415,14 @@ class TrustWeb3Provider extends EventEmitter {
       this.callbacks.delete(id);
     }
   }
+
+  emit(event, ...args) {
+    console.log(`=== emit event ${event} ${args}`);
+    super.emit(event, ...args);
+  }
 }
 
-window.trustwallet = {
+window.foxwallet = {
   Provider: TrustWeb3Provider,
   Web3: Web3,
   postMessage: null,
