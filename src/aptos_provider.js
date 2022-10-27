@@ -6,145 +6,200 @@
 
 "use strict";
 
-import BaseProvider from "./base_provider";
 import Utils from "./utils";
 
-class TrustAptosWeb3Provider extends BaseProvider {
-  constructor(config) {
-    super(config);
+class PetraError extends Error {
+  constructor(message) {
+    if (message === "Unauthorized") {
+      super("The requested method and/or account has not been authorized by the user");
+      this.name = "Unauthorized";
+      this.code = 4100;
+    } else if (message === "User Cancel input" || message==="User rejected the request") {
+      super("The user rejected the request.");
+      this.name = "User rejection";
+      this.code = 4001;
+    } else {
+      super(message);
+      this.name = "Internal error";
+      this.code = 99999;
+    }
+  }
+}
 
-    this.providerNetwork = "aptos";
+class FoxWalletAptosProvider {
+  constructor() {
+    this.isFoxwallet = true;
+    this.connected = false;
+    this.connectedAccount = null;
     this.callbacks = new Map();
-    this._isConnected = false;
-    this.isPetra = true;
-    this.setConfig(config.aptos);
   }
 
-  setConfig(config) {
-    this._network = config.network;
-    this.address = config.address;
-    this.chainId = config.chainId;
-  }
-
-  connect() {
-    return this.account().then((accountInfo) => {
-      this._isConnected = true;
-      this.emit("connect");
-      return accountInfo;
+  invokeRNMethod(payload) {
+    return new Promise((resolve, reject) => {
+      if (window.foxwallet.postMessage) {
+        this.callbacks.set(payload.id, (error, data) => {
+          try {
+            if (error) {
+              let errorString = JSON.parse(decodeURIComponent(error));
+              reject(errorString);
+            } else {
+              let resultData = JSON.parse(decodeURIComponent(data));
+              resolve(resultData);
+            }
+          } catch (e) {
+            console.log("invokeRNMethod", { e });
+            reject(e);
+          }
+        });
+        window.foxwallet.postMessage(payload);
+      } else {
+        reject(new PetraError("can not communicate with wallet"));
+      }
     });
   }
 
-  disconnect() {
+  sendResponse(id, result, error) {
+    let callback = this.callbacks.get(id);
+    if (callback) {
+      if (error) {
+        callback(error, null);
+      } else {
+        callback(null, result);
+      }
+      this.callbacks.delete(id);
+    } else {
+      // check if it's iframe callback
+      for (let i = 0; i < window.frames.length; i++) {
+        const frame = window.frames[i];
+        try {
+          if (frame.aptos.callbacks.has(id)) {
+            frame.aptos.sendResponse(id, result);
+          }
+        } catch (error) {
+          console.log(`send response to frame error: ${error}`);
+        }
+      }
+    }
+  }
+
+  connect() {
+    return new Promise((resolve, reject) => {
+      const callbackId = Utils.genId();
+      let object = {
+        id: callbackId,
+        name: "aptos.connect",
+      };
+      this.invokeRNMethod(object).then(connectedAccount => {
+        this.connected = true;
+        this.connectedAccount = connectedAccount;
+        resolve(connectedAccount);
+      }).catch(error => {
+        reject(new PetraError(error));
+      });
+    });
+  }
+
+  // no prompt
+  account() {
+    return new Promise((resolve, reject) => {
+      if (this.connectedAccount) {
+        resolve(this.connectedAccount);
+      } else {
+        reject(new PetraError("Unauthorized"));
+      }
+    });
+  }
+
+  disconnect(){
     return new Promise((resolve) => {
-      this.publicKey = null;
-      this._isConnected = false;
-      this.emit("disconnect");
+      this.connected = false;
+      this.connectedAccount = null;
       resolve();
     });
   }
 
   isConnected() {
-    return this._isConnected;
-  }
-
-  account() {
-    return this._request("requestAccounts").then((data) => {
-      return JSON.parse(data);
+    return new Promise((resolve) => {
+      resolve(this.connected);
     });
   }
 
-  network() {
-    return this._network;
-  }
-
-  async signMessage(payload) {
-    let prefix = "APTOS";
-    let address = (await this.account()).address;
-
-    var fullMessage = prefix
-    let application = window.location.protocol + "//" + window.location.hostname;
-    if (payload.address) {
-      fullMessage += "\naddress: " + address;
-    }
-    if (payload.application) {
-      fullMessage += "\napplication: " + application;
-    }
-    if (payload.chainId) {
-      fullMessage += "\nchainId: " + this.chainId;
-    }
-    fullMessage += "\nmessage: " + payload.message;
-    fullMessage += "\nnonce: " + payload.nonce;
-    const buffer = Buffer.from(fullMessage);
-    const hex = Utils.bufferToHex(buffer);
-
-    return this._request("signMessage", { data: hex })
-    .then((signature) => {
-      return {
-        address: address,
-        application: application,
-        chainId: this.chainId,
-        fullMessage: fullMessage,
-        message: payload.message,
-        nonce: payload.nonce,
-        prefix: prefix,
-        signature: signature
-      };
-    });
-  }
-
-  async signAndSubmitTransaction(tx) {
-    const signedTx = await this.signTransaction(tx);
-    return this._request("submitTransaction", { tx: signedTx })
-      .then((hex) => {
-        return { hash: Utils.messageToBuffer(hex).toString() };
-      });
-  }
-
-  signTransaction(tx) {
-    return this._request("signTransaction", { data: tx })
-      .then((hex) => {
-        return JSON.parse(Utils.messageToBuffer(hex).toString());
-      });
-  }
-
-  /**
-   * @private Internal rpc handler
-   */
-  _request(method, payload) {
-    if (this.isDebug) {
-      console.log(
-        `==> _request method: ${method}, payload ${JSON.stringify(payload)}`
-      );
-    }
+  network(){
     return new Promise((resolve, reject) => {
-      const id = Utils.genId();
-      console.log(`==> setting id ${id}`);
-      this.callbacks.set(id, (error, data) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(data);
-        }
+      const callbackId = Utils.genId();
+      let object = {
+        id: callbackId,
+        name: "aptos.network",
+      };
+      this.invokeRNMethod(object).then((network) => {
+        resolve(network);
+      }).catch(error => {
+        reject(new PetraError(JSON.parse(error)));
       });
+    });
+  }
 
-      switch (method) {
-        case "requestAccounts":
-          return this.postMessage("requestAccounts", id, {});
-        case "signMessage":
-          return this.postMessage("signMessage", id, payload);
-        case "signTransaction":
-          return this.postMessage("signTransaction", id, payload);
-        case "submitTransaction":
-            return this.postMessage("sendTransaction", id, payload);
-        default:
-          // throw errors for unsupported methods
-          throw new ProviderRpcError(
-            4200,
-            `Trust does not support calling ${payload.method} yet.`
-          );
+
+  signMessage(message) {
+    console.log("aptos.signMessage", message);
+    return new Promise((resolve, reject) => {
+      const callbackId = Utils.genId();
+      let object = {
+        id: callbackId,
+        name: "aptos.signMessage",
+        object: message
+      };
+      this.invokeRNMethod(object).then(signMessageResponse => {
+        console.log("signMessageResponse", { signMessageResponse });
+        resolve(signMessageResponse);
+      }).catch(error => {
+        reject(new PetraError(error));
+      });
+    });
+  }
+
+  signTransaction(transaction) {
+    console.log("signTransaction", transaction);
+    return new Promise((resolve, reject) => {
+      const callbackId = Utils.genId();
+      if (!transaction) {
+        reject(new PetraError("no transaction to sign"));
+        return;
       }
+      let object = {
+        id: callbackId,
+        name: "aptos.signTransaction",
+        object: transaction
+      };
+      this.invokeRNMethod(object).then(signed => {
+        console.log("aptosSignTransaction", "sign", signed);
+        const sig = new Uint8Array(Buffer.from(signed, "base64"));
+        resolve(sig);
+      }).catch(error => {
+        reject(new PetraError(error));
+      });
+    });
+  }
+
+  signAndSubmitTransaction(transaction) {
+    return new Promise((resolve, reject) => {
+      const callbackId = Utils.genId();
+      if (!transaction) {
+        reject(new PetraError("no transaction to sign"));
+        return;
+      }
+      let object = {
+        id: callbackId,
+        name: "aptos.signAndSubmitTransaction",
+        object: transaction
+      };
+      this.invokeRNMethod(object).then(transaction => {
+        resolve(transaction);
+      }).catch(error => {
+        reject(new PetraError(error));
+      });
     });
   }
 }
 
-module.exports = TrustAptosWeb3Provider;
+module.exports = FoxWalletAptosProvider;
