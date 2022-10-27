@@ -57,6 +57,15 @@ class Utils {
   static bufferToHex(buf) {
     return "0x" + Buffer.from(buf).toString("hex");
   }
+
+  static mapSignatureBack(source, target) {
+    source.signatures.map((sig) => {
+      const { signature, publicKey } = sig;
+      if (signature) {
+        target.addSignature(publicKey, signature);
+      }
+    });
+  }
 }
 
 module.exports = Utils;

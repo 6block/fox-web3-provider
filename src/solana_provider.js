@@ -1,186 +1,236 @@
-// Copyright © 2017-2020 Trust Wallet.
-//
-// This file is part of Trust. The full Trust copyright notice, including
-// terms governing use, modification, and redistribution, is contained in the
-// file LICENSE at the root of the source code distribution tree.
-
 "use strict";
-
-import BaseProvider from "./base_provider";
-import * as Web3 from "@solana/web3.js";
-import bs58 from "bs58";
+import EventEmitter from "eventemitter3";
+import { decode as bs58Decode } from "bs58";
 import Utils from "./utils";
-import ProviderRpcError from "./error";
 
-const { PublicKey, Connection } = Web3;
-
-class TrustSolanaWeb3Provider extends BaseProvider {
-  constructor(config) {
-    super(config);
-
-    this.providerNetwork = "solana";
-    this.callbacks = new Map();
-    this.publicKey = null;
+class FoxWalletSolanaProvider extends EventEmitter {
+  constructor() {
+    super();
+    this.isFoxWallet = true;
+    this.isCloverWallet = true;
+    this.isPhantom = true;
+    this.isGlow = false;
     this.isConnected = false;
-    this.connection = new Connection(
-      Web3.clusterApiUrl(config.solana.cluster),
-      "confirmed"
-    );
+
+    this.callbacks = new Map();
   }
 
-  connect() {
-    return this._request("requestAccounts").then((addresses) => {
-      this.setAddress(addresses[0]);
-      this.emit("connect");
+  connect(hiddenOption) {
+    return new Promise((resolve, reject) => {
+      this.getAccount(hiddenOption)
+        .then((account) => {
+          this.isConnected = true;
+          this.publicKey = {
+            toBytes: () => {
+              return bs58Decode(account);
+            },
+            toJSON: () => {
+              return account;
+            },
+            toString: () => {
+              return account;
+            },
+          };
+          this.emit("connect");
+          resolve();
+        })
+        .catch((err) => {
+          this.emit("disconnect");
+          reject(err);
+        });
     });
   }
 
   disconnect() {
     return new Promise((resolve) => {
-      this.publicKey = null;
       this.isConnected = false;
+      this.publicKey = null;
       this.emit("disconnect");
       resolve();
     });
   }
 
-  setAddress(address) {
-    this.publicKey = new PublicKey(address);
-    this.isConnected = true;
+  _handleDisconnect() {}
+
+  invokeRNMethod(payload) {
+    return new Promise((resolve1, reject1) => {
+      if (window.foxwallet.postMessage) {
+        this.callbacks.set(payload.id, (error, data) => {
+          if (error) {
+            reject1(error);
+          } else {
+            resolve1(data);
+          }
+        });
+        window.foxwallet.postMessage(payload);
+      } else {
+        reject1("can not communicate with wallet");
+      }
+    });
   }
 
-  emitAccountChanged() {
-    this.emit("accountChanged", this.publicKey);
+  sendResponse(id, result, error) {
+    let callback = this.callbacks.get(id);
+    if (callback) {
+      if (error) {
+        callback(error, null);
+      } else {
+        callback(null, result);
+      }
+      this.callbacks.delete(id);
+    } else {
+      // check if it's iframe callback
+      for (let i = 0; i < window.frames.length; i++) {
+        const frame = window.frames[i];
+        try {
+          if (frame.solana.callbacks.has(id)) {
+            frame.solana.sendResponse(id, result);
+          }
+        } catch (error) {
+          console.log(`send response to frame error: ${error}`);
+        }
+      }
+    }
+  }
+
+  getAccount(hiddenOption) {
+    return new Promise((resolve, reject) => {
+      const callbackId = Utils.genId();
+      let object = {
+        id: callbackId,
+        name: "solana.getAccount",
+        object: JSON.stringify(hiddenOption),
+      };
+      this.invokeRNMethod(object)
+        .then((account) => {
+          resolve(JSON.parse(account));
+        })
+        .catch((error) => {
+          reject(new Error(JSON.parse(error)));
+        });
+    });
   }
 
   signMessage(message) {
-    const hex = Utils.bufferToHex(message);
-    if (this.isDebug) {
-      console.log(`==> signMessage ${message}, hex: ${hex}`);
-    }
-    return this._request("signMessage", { data: hex }).then((data) => {
-      return {
-        signature: new Uint8Array(Utils.messageToBuffer(data).buffer),
-      };
-    });
-  }
-
-  mapSignedTransaction(tx, signatureEncoded) {
-    const version = typeof tx.version !== "number" ? "legacy" : tx.version;
-    const signature = bs58.decode(signatureEncoded);
-
-    tx.addSignature(this.publicKey, signature);
-
-    if (version === "legacy" && !tx.verifySignatures()) {
-      throw new ProviderRpcError(4300, "Invalid signature");
-    }
-
-    if (this.isDebug) {
-      console.log(`==> signed single ${JSON.stringify(tx)}`);
-    }
-
-    return tx;
-  }
-
-  signTransaction(tx) {
-    const data = JSON.stringify(tx);
-    const version = typeof tx.version !== "number" ? "legacy" : tx.version;
-
-    const raw = bs58.encode(
-      version === "legacy" ? tx.serializeMessage() : version === 0 ? tx.message.serialize() : tx.serialize()
-    );
-
-    return this._request("signRawTransaction", { data, raw, version })
-      .then((signatureEncoded) =>
-        this.mapSignedTransaction(tx, signatureEncoded)
-      )
-      .catch((error) => {
-        console.log(`<== Error: ${error}`);
-      });
-  }
-
-  signAllTransactions(txs) {
-    return Promise.all(txs.map((tx) => this.signTransaction(tx)));
-  }
-
-  signAllTransactionsV2(txs) {
-    return this._request("signRawTransactionMulti", {
-      transactions: txs.map((tx) => {
-        const data = JSON.stringify(tx);
-        const version = typeof tx.version !== "number" ? "legacy" : tx.version;
-
-        const raw = bs58.encode(
-          version === "legacy" ? tx.serializeMessage() : version === 0 ? tx.message.serialize() : tx.serialize()
-        );
-
-        return { data, raw, version };
-      }),
-    })
-      .then((signaturesEncoded) =>
-        signaturesEncoded.map((signature, i) =>
-          this.mapSignedTransaction(txs[i], signature)
-        )
-      )
-      .catch((error) => {
-        console.log(`<== Error: ${error}`);
-      });
-  }
-
-  signAndSendTransaction(tx, options) {
-    if (this.isDebug) {
-      console.log(
-        `==> signAndSendTransaction ${JSON.stringify(tx)}, options: ${options}`
-      );
-    }
-    return this.signTransaction(tx).then(async (signedTx) => {
-      const signature = await Web3.sendAndConfirmRawTransaction(
-        this.connection,
-        signedTx.serialize(),
-        Web3.BlockheightBasedTransactionConfirmationStrategy,
-        options
-      );
-      return { signature: signature };
-    });
-  }
-
-  /**
-   * @private Internal rpc handler
-   */
-  _request(method, payload) {
-    if (this.isDebug) {
-      console.log(
-        `==> _request method: ${method}, payload ${JSON.stringify(payload)}`
-      );
-    }
     return new Promise((resolve, reject) => {
-      const id = Utils.genId();
-      console.log(`==> setting id ${id}`);
-      this.callbacks.set(id, (error, data) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(data);
-        }
-      });
+      const callbackId = Utils.genId();
+      let object = {
+        id: callbackId,
+        name: "solana.signMessage",
+        object: message ? Buffer.from(message).toString("base64") : "",
+      };
+      this.invokeRNMethod(object)
+        .then((message) => {
+          const originalParam = JSON.parse(message);
+          const sig = new Uint8Array(Buffer.from(originalParam, "base64"));
+          console.log("window.foxwallet[callbackId]", callbackId, { sig });
+          resolve({ signature: sig });
+        })
+        .catch((error) => {
+          reject(new Error(JSON.parse(error)));
+        });
+    });
+  }
 
-      switch (method) {
-        case "signMessage":
-          return this.postMessage("signMessage", id, payload);
-        case "signRawTransaction":
-          return this.postMessage("signRawTransaction", id, payload);
-        case "signRawTransactionMulti":
-          return this.postMessage("signRawTransactionMulti", id, payload);
-        case "requestAccounts":
-          return this.postMessage("requestAccounts", id, {});
-        default:
-          // throw errors for unsupported methods
-          throw new ProviderRpcError(
-            4200,
-            `Trust does not support calling ${payload.method} yet.`
-          );
+  signTransaction(transaction) {
+    return new Promise((resolve, reject) => {
+      const callbackId = Utils.genId();
+      if (!transaction) {
+        reject(new Error("no transaction to sign"));
+        return;
       }
+      const tBuffer = transaction.serialize({
+        requireAllSignatures: false,
+        verifySignatures: false,
+      });
+      let object = {
+        id: callbackId,
+        name: "solana.signTransaction",
+        object: tBuffer.toString("base64"),
+      };
+      this.invokeRNMethod(object)
+        .then((output) => {
+          try {
+            const signed = transaction.constructor.from(
+              new Uint8Array(Buffer.from(JSON.parse(output), "base64"))
+            );
+            Utils.mapSignatureBack(signed, transaction);
+            resolve(transaction);
+          } catch (e) {
+            reject(new Error("transaction is not valid"));
+          }
+        })
+        .catch((error) => {
+          reject(new Error(JSON.parse(error)));
+        });
+    });
+  }
+
+  signAndSendTransaction(transaction, options) {
+    return new Promise((resolve, reject) => {
+      const callbackId = Utils.genId();
+      if (!transaction) {
+        reject(new Error("no transaction to sign"));
+        return;
+      }
+      const tBuffer = transaction.serialize({
+        requireAllSignatures: false,
+        verifySignatures: false,
+      });
+      let object = {
+        id: callbackId,
+        name: "solana.signAndSendTransaction",
+        object: { transaction: tBuffer.toString("base64"), options },
+      };
+      this.invokeRNMethod(object)
+        .then((message) => {
+          const sig = JSON.parse(message);
+          resolve({ signature: sig });
+        })
+        .catch((error) => {
+          reject(new Error(JSON.parse(error)));
+        });
+    });
+  }
+
+  signAllTransactions(transactions) {
+    return new Promise((resolve, reject) => {
+      if (!transactions || transactions.length === 0) {
+        reject(new Error("no transaction to sign"));
+      }
+      const callbackId = Utils.genId();
+      const serialized = transactions.map((transaction) =>
+        transaction
+          .serialize({
+            requireAllSignatures: false,
+            verifySignatures: false,
+          })
+          .toString("base64")
+      );
+      let object = {
+        id: callbackId,
+        name: "solana.signAllTransactions",
+        object: serialized,
+      };
+      this.invokeRNMethod(object)
+        .then((output) => {
+          const outputObj = JSON.parse(output);
+          for (let i = 0; i < transactions.length; i++) {
+            const signedTransaction = transactions[i].constructor.from(
+              Buffer.from(outputObj[i], "base64")
+            );
+            Utils.mapSignatureBack(signedTransaction, transactions[i]);
+          }
+          console.log("window.foxwallet[callbackId]", callbackId, {
+            transactions,
+          });
+          resolve(transactions);
+        })
+        .catch((error) => {
+          reject(new Error(JSON.parse(error)));
+        });
     });
   }
 }
 
-module.exports = TrustSolanaWeb3Provider;
+module.exports = FoxWalletSolanaProvider;

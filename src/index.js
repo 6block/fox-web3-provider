@@ -7,14 +7,29 @@
 "use strict";
 
 import TrustWeb3Provider from "./ethereum_provider";
-import TrustSolanaWeb3Provider from "./solana_provider";
-import TrustCosmosWeb3Provider from "./cosmos_provider";
-import TrustAptosWeb3Provider from "./aptos_provider";
+import FoxWalletSolanaProvider from "./solana_provider";
+// import TrustCosmosWeb3Provider from "./cosmos_provider";
+import FoxWalletAptosProvider from "./aptos_provider";
 
-window.trustwallet = {
+window.foxwallet = {
   Provider: TrustWeb3Provider,
-  SolanaProvider: TrustSolanaWeb3Provider,
-  CosmosProvider: TrustCosmosWeb3Provider,
-  AptosProvider: TrustAptosWeb3Provider,
+  SolanaProvider: FoxWalletSolanaProvider,
+  // CosmosProvider: TrustCosmosWeb3Provider,
+  AptosProvider: FoxWalletAptosProvider,
   postMessage: null,
 };
+
+
+window.aptos = new FoxWalletAptosProvider();
+window.petra = window.aptos;
+if(window.foxwallet){
+  window.foxwallet.aptos = window.aptos;
+}
+
+window.solana = new FoxWalletSolanaProvider();
+window.clover_solana = window.solana;
+window.phantom = {solana: window.solana};
+window.glowSolana = window.solana;
+if(window.foxwallet){
+  window.foxwallet.solana = window.solana;
+}
