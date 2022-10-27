@@ -6,13 +6,13 @@
 
 "use strict";
 
-import TrustWeb3Provider from "./ethereum_provider";
+import FoxWeb3Provider from "./ethereum_provider";
 import FoxWalletSolanaProvider from "./solana_provider";
 // import TrustCosmosWeb3Provider from "./cosmos_provider";
 import FoxWalletAptosProvider from "./aptos_provider";
 
 window.foxwallet = {
-  Provider: TrustWeb3Provider,
+  Provider: FoxWeb3Provider,
   SolanaProvider: FoxWalletSolanaProvider,
   // CosmosProvider: TrustCosmosWeb3Provider,
   AptosProvider: FoxWalletAptosProvider,

@@ -25,8 +25,8 @@ class BaseProvider extends EventEmitter {
       object: data,
       network: this.providerNetwork,
     };
-    if (window.trustwallet.postMessage) {
-      window.trustwallet.postMessage(object);
+    if (window.foxwallet.postMessage) {
+      window.foxwallet.postMessage(object);
     } else {
       console.error("postMessage is not available");
     }

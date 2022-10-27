@@ -14,7 +14,7 @@ import isUtf8 from "isutf8";
 import { TypedDataUtils, SignTypedDataVersion } from "@metamask/eth-sig-util";
 import BaseProvider from "./base_provider";
 
-class TrustWeb3Provider extends BaseProvider {
+class FoxWeb3Provider extends BaseProvider {
   constructor(config) {
     super(config);
     this.setConfig(config);
@@ -31,7 +31,7 @@ class TrustWeb3Provider extends BaseProvider {
   setAddress(address) {
     const lowerAddress = (address || "").toLowerCase();
     this.address = lowerAddress;
-    this.ready = !!address;
+    this.ready = true;
     try {
       for (var i = 0; i < window.frames.length; i++) {
         const frame = window.frames[i];
@@ -57,7 +57,7 @@ class TrustWeb3Provider extends BaseProvider {
   request(payload) {
     // this points to window in methods like web3.eth.getAccounts()
     var that = this;
-    if (!(this instanceof TrustWeb3Provider)) {
+    if (!(this instanceof FoxWeb3Provider)) {
       that = window.ethereum;
     }
     return that._request(payload, false);
@@ -119,7 +119,7 @@ class TrustWeb3Provider extends BaseProvider {
     );
     // this points to window in methods like web3.eth.getAccounts()
     var that = this;
-    if (!(this instanceof TrustWeb3Provider)) {
+    if (!(this instanceof FoxWeb3Provider)) {
       that = window.ethereum;
     }
     if (Array.isArray(payload)) {
@@ -199,6 +199,7 @@ class TrustWeb3Provider extends BaseProvider {
           // call upstream rpc
           this.callbacks.delete(payload.id);
           this.wrapResults.delete(payload.id);
+          payload.jsonrpc = "2.0";
           return this.rpc
             .call(payload)
             .then((response) => {
@@ -311,8 +312,19 @@ class TrustWeb3Provider extends BaseProvider {
    * @private Internal js -> native message handler
    */
   postMessage(handler, id, data) {
-    if (this.ready || handler === "requestAccounts") {
-      super.postMessage(handler, id, data);
+    console.log("====> hander: ", handler);
+    if (this.ready || handler === "requestAccounts" || handler === "switchEthereumChain") {
+      let object = {
+        id: id,
+        name: handler,
+        object: data,
+      };
+      if (window.foxwallet.postMessage) {
+        window.foxwallet.postMessage(object);
+      } else {
+        // old clients
+        window.webkit.messageHandlers[handler].postMessage(object);
+      }
     } else {
       // don't forget to verify in the app
       this.sendError(id, new ProviderRpcError(4100, "provider is not ready"));
@@ -338,6 +350,7 @@ class TrustWeb3Provider extends BaseProvider {
       data.result = result;
     }
     if (this.isDebug) {
+      console.log("<== wrapResult: ", wrapResult);
       console.log(
         `<== sendResponse id: ${id}, result: ${JSON.stringify(
           result
@@ -362,6 +375,11 @@ class TrustWeb3Provider extends BaseProvider {
       }
     }
   }
+
+  emit(event, ...args) {
+    console.log(`=== emit event ${event} ${args}`);
+    super.emit(event, ...args);
+  }
 }
 
-module.exports = TrustWeb3Provider;
+module.exports = FoxWeb3Provider;
