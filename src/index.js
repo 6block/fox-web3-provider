@@ -32,7 +32,7 @@ class TrustWeb3Provider extends EventEmitter {
   setAddress(address) {
     const lowerAddress = (address || "").toLowerCase();
     this.address = lowerAddress;
-    this.ready = !!address;
+    this.ready = true;
     for (var i = 0; i < window.frames.length; i++) {
       const frame = window.frames[i];
       if (frame.ethereum && frame.ethereum.isTrust) {
