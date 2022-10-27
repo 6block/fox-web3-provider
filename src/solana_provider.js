@@ -1,5 +1,5 @@
 "use strict";
-import EventEmitter from "eventemitter3";
+import { EventEmitter } from "events";
 import { decode as bs58Decode } from "bs58";
 import Utils from "./utils";
 
