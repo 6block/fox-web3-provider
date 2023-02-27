@@ -1,18 +1,19 @@
 "use strict";
-import { EventEmitter } from "events";
 import { decode as bs58Decode } from "bs58";
 import Utils from "./utils";
+import BaseProvider from "./base_provider";
 
-class FoxWalletSolanaProvider extends EventEmitter {
+class FoxWalletSolanaProvider extends BaseProvider {
   constructor() {
     super();
-    this.isFoxWallet = true;
+    this.providerNetwork = "SOL";
+    this.callbacks = new Map();
+    this.publicKey = null;
+    this.isConnected = false;
+
     this.isCloverWallet = true;
     this.isPhantom = true;
     this.isGlow = false;
-    this.isConnected = false;
-
-    this.callbacks = new Map();
   }
 
   connect(hiddenOption) {
@@ -98,8 +99,9 @@ class FoxWalletSolanaProvider extends EventEmitter {
       const callbackId = Utils.genId();
       let object = {
         id: callbackId,
-        name: "solana.getAccount",
+        name: "requestAccounts",
         object: JSON.stringify(hiddenOption),
+        providerNetwork: this.providerNetwork,
       };
       this.invokeRNMethod(object)
         .then((account) => {
@@ -116,8 +118,9 @@ class FoxWalletSolanaProvider extends EventEmitter {
       const callbackId = Utils.genId();
       let object = {
         id: callbackId,
-        name: "solana.signMessage",
+        name: "signMessage",
         object: message ? Buffer.from(message).toString("base64") : "",
+        providerNetwork: this.providerNetwork,
       };
       this.invokeRNMethod(object)
         .then((message) => {
@@ -145,8 +148,9 @@ class FoxWalletSolanaProvider extends EventEmitter {
       });
       let object = {
         id: callbackId,
-        name: "solana.signTransaction",
+        name: "signTransaction",
         object: tBuffer.toString("base64"),
+        providerNetwork: this.providerNetwork,
       };
       this.invokeRNMethod(object)
         .then((output) => {
@@ -179,8 +183,9 @@ class FoxWalletSolanaProvider extends EventEmitter {
       });
       let object = {
         id: callbackId,
-        name: "solana.signAndSendTransaction",
+        name: "signAndSendTransaction",
         object: { transaction: tBuffer.toString("base64"), options },
+        providerNetwork: this.providerNetwork,
       };
       this.invokeRNMethod(object)
         .then((message) => {
@@ -209,8 +214,9 @@ class FoxWalletSolanaProvider extends EventEmitter {
       );
       let object = {
         id: callbackId,
-        name: "solana.signAllTransactions",
+        name: "signAllTransactions",
         object: serialized,
+        providerNetwork: this.providerNetwork,
       };
       this.invokeRNMethod(object)
         .then((output) => {

@@ -12,7 +12,7 @@ class BaseProvider extends EventEmitter {
   constructor(config) {
     super();
     this.isDebug = !!config.isDebug;
-    this.isTrust = true;
+    this.isFoxWallet = true;
   }
 
   /**
