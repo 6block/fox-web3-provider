@@ -1,12 +1,13 @@
 "use strict";
+import { EventEmitter } from "events";
 import { decode as bs58Decode } from "bs58";
 import Utils from "./utils";
-import BaseProvider from "./base_provider";
 
-class FoxWalletSolanaProvider extends BaseProvider {
+class FoxWalletSolanaProvider extends EventEmitter {
   constructor() {
     super();
-    this.providerNetwork = "SOL";
+    this.isFoxWallet = true;
+    this.chain = "SOL";
     this.callbacks = new Map();
     this.publicKey = null;
     this.isConnected = false;
@@ -100,7 +101,7 @@ class FoxWalletSolanaProvider extends BaseProvider {
         id: callbackId,
         name: "requestAccounts",
         object: JSON.stringify(hiddenOption),
-        providerNetwork: this.providerNetwork,
+        chain: this.chain,
       };
       this.invokeRNMethod(object).then(account => {
         resolve(JSON.parse(account));
@@ -117,7 +118,7 @@ class FoxWalletSolanaProvider extends BaseProvider {
         id: callbackId,
         name: "signMessage",
         object: message ? Buffer.from(message).toString("base64") : "",
-        providerNetwork: this.providerNetwork,
+        chain: this.chain,
       };
       this.invokeRNMethod(object).then(message => {
         const originalParam = JSON.parse(message);
@@ -145,7 +146,7 @@ class FoxWalletSolanaProvider extends BaseProvider {
         id: callbackId,
         name: "signTransaction",
         object: tBuffer.toString("base64"),
-        providerNetwork: this.providerNetwork,
+        chain: this.chain,
       };
       this.invokeRNMethod(object).then(output => {
         try {
@@ -176,7 +177,7 @@ class FoxWalletSolanaProvider extends BaseProvider {
         id: callbackId,
         name: "signAndSendTransaction",
         object: {transaction: tBuffer.toString("base64"), options},
-        providerNetwork: this.providerNetwork,
+        chain: this.chain,
       };
       this.invokeRNMethod(object).then(message => {
         const sig = JSON.parse(message);
@@ -201,7 +202,7 @@ class FoxWalletSolanaProvider extends BaseProvider {
         id: callbackId,
         name: "signAllTransactions",
         object: serialized,
-        providerNetwork: this.providerNetwork,
+        chain: this.chain,
       };
       this.invokeRNMethod(object).then(output => {
         const outputObj = JSON.parse(output);

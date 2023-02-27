@@ -16,7 +16,7 @@ export class TrustCosmosWeb3Provider extends BaseProvider {
   constructor(config) {
     super(config);
 
-    this.providerNetwork = "COSMOS";
+    this.chain = "COSMOS";
     this.callbacks = new Map();
     this.mode = "extension";
     this.isKeplr = true;
