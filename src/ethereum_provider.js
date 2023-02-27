@@ -19,7 +19,7 @@ class FoxWeb3Provider extends BaseProvider {
     super(config);
     this.setConfig(config);
 
-    this.providerNetwork = "ethereum";
+    this.providerNetwork = "ETH";
     this.idMapping = new IdMapping();
     this.callbacks = new Map();
     this.wrapResults = new Map();
@@ -35,7 +35,7 @@ class FoxWeb3Provider extends BaseProvider {
     try {
       for (var i = 0; i < window.frames.length; i++) {
         const frame = window.frames[i];
-        if (frame.ethereum && frame.ethereum.isTrust) {
+        if (frame.ethereum && frame.ethereum.isFoxWallet) {
           frame.ethereum.address = lowerAddress;
           frame.ethereum.ready = !!address;
         }
