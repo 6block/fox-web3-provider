@@ -29,6 +29,7 @@ class PetraError extends Error {
 class FoxWalletAptosProvider {
   constructor() {
     this.isFoxwallet = true;
+    this.providerNetwork = "APTOS";
     this.connected = false;
     this.connectedAccount = null;
     this.callbacks = new Map();
@@ -87,7 +88,8 @@ class FoxWalletAptosProvider {
       const callbackId = Utils.genId();
       let object = {
         id: callbackId,
-        name: "aptos.connect",
+        name: "connect",
+        providerNetwork: this.providerNetwork,
       };
       this.invokeRNMethod(object).then(connectedAccount => {
         this.connected = true;
@@ -129,7 +131,8 @@ class FoxWalletAptosProvider {
       const callbackId = Utils.genId();
       let object = {
         id: callbackId,
-        name: "aptos.network",
+        name: "network",
+        providerNetwork: this.providerNetwork,
       };
       this.invokeRNMethod(object).then((network) => {
         resolve(network);
@@ -141,13 +144,14 @@ class FoxWalletAptosProvider {
 
 
   signMessage(message) {
-    console.log("aptos.signMessage", message);
+    console.log("signMessage", message);
     return new Promise((resolve, reject) => {
       const callbackId = Utils.genId();
       let object = {
         id: callbackId,
-        name: "aptos.signMessage",
-        object: message
+        name: "signMessage",
+        object: message,
+        providerNetwork: this.providerNetwork,
       };
       this.invokeRNMethod(object).then(signMessageResponse => {
         console.log("signMessageResponse", { signMessageResponse });
@@ -168,8 +172,9 @@ class FoxWalletAptosProvider {
       }
       let object = {
         id: callbackId,
-        name: "aptos.signTransaction",
-        object: transaction
+        name: "signTransaction",
+        object: transaction,
+        providerNetwork: this.providerNetwork,
       };
       this.invokeRNMethod(object).then(signed => {
         console.log("aptosSignTransaction", "sign", signed);
@@ -190,8 +195,9 @@ class FoxWalletAptosProvider {
       }
       let object = {
         id: callbackId,
-        name: "aptos.signAndSubmitTransaction",
-        object: transaction
+        name: "signAndSubmitTransaction",
+        object: transaction.Buffer,
+        providerNetwork: this.providerNetwork,
       };
       this.invokeRNMethod(object).then(transaction => {
         resolve(transaction);
