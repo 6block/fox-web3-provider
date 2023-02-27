@@ -34,7 +34,7 @@ class PetraError extends Error {
 class FoxWalletAptosProvider {
   constructor() {
     this.isFoxwallet = true;
-    this.providerNetwork = "APTOS";
+    this.chain = "APTOS";
     this.connected = false;
     this.connectedAccount = null;
     this.callbacks = new Map();
@@ -94,7 +94,7 @@ class FoxWalletAptosProvider {
       let object = {
         id: callbackId,
         name: "connect",
-        providerNetwork: this.providerNetwork,
+        chain: this.chain,
       };
       this.invokeRNMethod(object)
         .then((connectedAccount) => {
@@ -139,7 +139,7 @@ class FoxWalletAptosProvider {
       let object = {
         id: callbackId,
         name: "network",
-        providerNetwork: this.providerNetwork,
+        chain: this.chain,
       };
       this.invokeRNMethod(object)
         .then((network) => {
@@ -157,8 +157,9 @@ class FoxWalletAptosProvider {
       const callbackId = Utils.genId();
       let object = {
         id: callbackId,
-        name: "aptos.signMessage",
+        name: "signMessage",
         object: message,
+        chain: this.chain,
       };
       this.invokeRNMethod(object)
         .then((signMessageResponse) => {
@@ -183,7 +184,7 @@ class FoxWalletAptosProvider {
         id: callbackId,
         name: "signTransaction",
         object: transaction,
-        providerNetwork: this.providerNetwork,
+        chain: this.chain,
       };
       this.invokeRNMethod(object)
         .then((signed) => {
@@ -208,6 +209,7 @@ class FoxWalletAptosProvider {
         id: callbackId,
         name: "signAndSubmitTransaction",
         object: transaction,
+        chain: this.chain,
       };
       this.invokeRNMethod(object)
         .then((transaction) => {

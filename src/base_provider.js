@@ -23,7 +23,7 @@ class BaseProvider extends EventEmitter {
       id: id,
       name: handler,
       object: data,
-      network: this.providerNetwork,
+      network: this.chain,
     };
     if (window.foxwallet.postMessage) {
       window.foxwallet.postMessage(object);

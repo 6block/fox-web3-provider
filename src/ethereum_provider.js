@@ -19,7 +19,8 @@ class FoxWeb3Provider extends BaseProvider {
     super(config);
     this.setConfig(config);
 
-    this.providerNetwork = "ETH";
+    this.isFoxWallet = true;
+    this.chain = "ETH";
     this.idMapping = new IdMapping();
     this.callbacks = new Map();
     this.wrapResults = new Map();
@@ -365,6 +366,7 @@ class FoxWeb3Provider extends BaseProvider {
         id: id,
         name: handler,
         object: data,
+        chain: this.chain,
       };
       if (window.foxwallet.postMessage) {
         window.foxwallet.postMessage(object);
