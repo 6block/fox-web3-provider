@@ -196,7 +196,7 @@ class FoxWalletAptosProvider {
       let object = {
         id: callbackId,
         name: "signAndSubmitTransaction",
-        object: transaction.Buffer,
+        object: transaction,
         chain: this.chain,
       };
       this.invokeRNMethod(object).then(transaction => {
