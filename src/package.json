@@ -25,7 +25,8 @@
     "buffer": "^5.6.0",
     "eventemitter3": "^4.0.7",
     "events": "^3.2.0",
-    "isutf8": "^3.1.1"
+    "isutf8": "^3.1.1",
+    "foxwallet-standard-wallet": "git+https://github.com/foxwallet/solana-wallet-standard.git#c741edc"
   },
   "devDependencies": {
     "@babel/core": "^7.16.12",
