@@ -9,9 +9,9 @@
 import { EventEmitter } from "events";
 
 class BaseProvider extends EventEmitter {
-  constructor(config) {
+  constructor() {
     super();
-    this.isDebug = !!config.isDebug;
+    this.isDebug = true;
     this.isFoxWallet = true;
   }
 
@@ -23,7 +23,7 @@ class BaseProvider extends EventEmitter {
       id: id,
       name: handler,
       object: data,
-      network: this.chain,
+      chain: this.chain,
     };
     if (window.foxwallet.postMessage) {
       window.foxwallet.postMessage(object);
@@ -53,7 +53,7 @@ class BaseProvider extends EventEmitter {
   /**
    * @private Internal native error -> js
    */
-   sendError(id, error) {
+  sendError(id, error) {
     console.log(`<== ${id} sendError ${error}`);
     let callback = this.callbacks.get(id);
     if (callback) {

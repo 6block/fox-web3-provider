@@ -1196,20 +1196,75 @@
     tweetnacl "^1.0.3"
     tweetnacl-util "^0.15.1"
 
+"@mysten/bcs@0.6.1":
+  version "0.6.1"
+  resolved "https://registry.npmmirror.com/@mysten/bcs/-/bcs-0.6.1.tgz#9805bf61486bd10136e7d9c703408cea51a3a2fc"
+  integrity sha512-xogS6EqXhyAeineYTy3RT6pWW5W9cy3A4uPIgwedGAQFZbW23zk/jlmZpJZuZmdzuD+EA524uuNsLGgFgzw11g==
+  dependencies:
+    bs58 "^5.0.0"
+
+"@mysten/sui.js@0.29.1":
+  version "0.29.1"
+  resolved "https://registry.npmmirror.com/@mysten/sui.js/-/sui.js-0.29.1.tgz#cd3b8ccd838c09363f17d5ae9362901c07d22143"
+  integrity sha512-EupoejRft6RUOv9gzvAGnZNPRDD2a/YvUkWNQtijuEFADzJ1zRlE2YUFGn9fW+/kRgYLoR0WWMvd5rNYPD2nqg==
+  dependencies:
+    "@mysten/bcs" "0.6.1"
+    "@noble/hashes" "^1.1.5"
+    "@noble/secp256k1" "^1.7.0"
+    "@scure/bip32" "^1.1.1"
+    "@scure/bip39" "^1.1.0"
+    "@suchipi/femver" "^1.0.0"
+    cross-fetch "^3.1.5"
+    jayson "^4.0.0"
+    js-sha3 "^0.8.0"
+    rpc-websockets "^7.5.0"
+    superstruct "^1.0.3"
+    tweetnacl "^1.0.3"
+
+"@mysten/wallet-standard@^0.4.3":
+  version "0.4.3"
+  resolved "https://registry.npmmirror.com/@mysten/wallet-standard/-/wallet-standard-0.4.3.tgz#8650848096c4df548bb33e6fc33b31563041f703"
+  integrity sha512-hnUbd0RXbnnkZr1XmQpbMWEQ0vRqyl17khioJXAKevTtlaPpEVFYQhr3eI3KIXfykq4zU3ArwmGOA4J7tsxzcw==
+  dependencies:
+    "@mysten/sui.js" "0.29.1"
+    "@wallet-standard/core" "1.0.1"
+
+"@noble/curves@~0.8.3":
+  version "0.8.3"
+  resolved "https://registry.npmmirror.com/@noble/curves/-/curves-0.8.3.tgz#ad6d48baf2599cf1d58dcb734c14d5225c8996e0"
+  integrity sha512-OqaOf4RWDaCRuBKJLDURrgVxjLmneGsiCXGuzYB5y95YithZMA6w4uk34DHSm0rKMrrYiaeZj48/81EvaAScLQ==
+  dependencies:
+    "@noble/hashes" "1.3.0"
+
 "@noble/ed25519@^1.7.0":
   version "1.7.1"
   resolved "https://registry.npmmirror.com/@noble/ed25519/-/ed25519-1.7.1.tgz#6899660f6fbb97798a6fbd227227c4589a454724"
   integrity sha512-Rk4SkJFaXZiznFyC/t77Q0NKS4FL7TLJJsVG2V2oiEq3kJVeTdxysEe/yRWSpnWMe808XRDJ+VFh5pt/FN5plw==
+
+"@noble/hashes@1.3.0", "@noble/hashes@^1.1.5", "@noble/hashes@~1.3.0":
+  version "1.3.0"
+  resolved "https://registry.npmmirror.com/@noble/hashes/-/hashes-1.3.0.tgz#085fd70f6d7d9d109671090ccae1d3bec62554a1"
+  integrity sha512-ilHEACi9DwqJB0pw7kv+Apvh50jiiSyR/cQ3y4W7lOR5mhvn/50FLUfsnfJz0BDZtl/RR16kXvptiv6q1msYZg==
 
 "@noble/hashes@^1.1.2":
   version "1.1.3"
   resolved "https://registry.npmmirror.com/@noble/hashes/-/hashes-1.1.3.tgz#360afc77610e0a61f3417e497dcf36862e4f8111"
   integrity sha512-CE0FCR57H2acVI5UOzIGSSIYxZ6v/HOhDR0Ro9VLyhnzLwx0o8W1mmgaqlEUx4049qJDlIBRztv5k+MM8vbO3A==
 
+"@noble/hashes@~1.2.0":
+  version "1.2.0"
+  resolved "https://registry.npmmirror.com/@noble/hashes/-/hashes-1.2.0.tgz#a3150eeb09cc7ab207ebf6d7b9ad311a9bdbed12"
+  integrity sha512-FZfhjEDbT5GRswV3C6uvLPHMiVD6lQBmpoX5+eSiPaMTXte/IKqI5dykDxzZB/WBeK/CDuQRBWarPdi3FNY2zQ==
+
 "@noble/secp256k1@^1.6.3":
   version "1.7.0"
   resolved "https://registry.npmmirror.com/@noble/secp256k1/-/secp256k1-1.7.0.tgz#d15357f7c227e751d90aa06b05a0e5cf993ba8c1"
   integrity sha512-kbacwGSsH/CTout0ZnZWxnW1B+jH/7r/WAAKLBtrRJ/+CUH7lgmQzl3GTrQua3SGKWNSDsS6lmjnDpIJ5Dxyaw==
+
+"@noble/secp256k1@^1.7.0":
+  version "1.7.1"
+  resolved "https://registry.npmmirror.com/@noble/secp256k1/-/secp256k1-1.7.1.tgz#b251c70f824ce3ca7f8dc3df08d58f005cc0507c"
+  integrity sha512-hOUk6AyBFmqVrv7k5WAw/LpszxVbj9gGN4JRkIX52fdFAj1UA61KXmZDvqVEm+pOyec3+fIeZB02LYa/pWOArw==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -1231,6 +1286,28 @@
   dependencies:
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
+
+"@scure/base@~1.1.0":
+  version "1.1.1"
+  resolved "https://registry.npmmirror.com/@scure/base/-/base-1.1.1.tgz#ebb651ee52ff84f420097055f4bf46cfba403938"
+  integrity sha512-ZxOhsSyxYwLJj3pLZCefNitxsj093tb2vq90mp2txoYeBqbcjDjqFhyM8eUjq/uFm6zJ+mUuqxlS2FkuSY1MTA==
+
+"@scure/bip32@^1.1.1":
+  version "1.2.0"
+  resolved "https://registry.npmmirror.com/@scure/bip32/-/bip32-1.2.0.tgz#35692d8f8cc3207200239fc119f9e038e5f465df"
+  integrity sha512-O+vT/hBVk+ag2i6j2CDemwd1E1MtGt+7O1KzrPNsaNvSsiEK55MyPIxJIMI2PS8Ijj464B2VbQlpRoQXxw1uHg==
+  dependencies:
+    "@noble/curves" "~0.8.3"
+    "@noble/hashes" "~1.3.0"
+    "@scure/base" "~1.1.0"
+
+"@scure/bip39@^1.1.0":
+  version "1.1.1"
+  resolved "https://registry.npmmirror.com/@scure/bip39/-/bip39-1.1.1.tgz#b54557b2e86214319405db819c4b6a370cf340c5"
+  integrity sha512-t+wDck2rVkh65Hmv280fYdVdY25J9YeEUIgn2LG1WM6gxFkGzcksoDiUkWVpVp3Oex9xGC68JU2dSbUfwZ2jPg==
+  dependencies:
+    "@noble/hashes" "~1.2.0"
+    "@scure/base" "~1.1.0"
 
 "@sinonjs/commons@^1.7.0":
   version "1.8.3"
@@ -1273,6 +1350,11 @@
     node-fetch "2"
     rpc-websockets "^7.5.0"
     superstruct "^0.14.2"
+
+"@suchipi/femver@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.npmmirror.com/@suchipi/femver/-/femver-1.0.0.tgz#4909dcc069695e07bd23a64c4bfe411d11d9692f"
+  integrity sha512-bprE8+K5V+DPX7q2e2K57ImqNBdfGHDIWaGI5xHxZoxbKOuQZn4wzPiUxOAHnsUr3w3xHrWXwN7gnG/iIuEMIg==
 
 "@tootallnate/once@1":
   version "1.1.2"
@@ -1411,6 +1493,52 @@
   integrity sha512-T8Yc9wt/5LbJyCaLiHPReJa0kApcIgJ7Bn735GjItUfh08Z1pJvu8QZqb9s+mMvKV6WUQRV7K2R46YbjMXTTJw==
   dependencies:
     "@types/yargs-parser" "*"
+
+"@wallet-standard/app@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.npmmirror.com/@wallet-standard/app/-/app-1.0.1.tgz#f83c3ae887f7fb52497a7b259bba734ae10a2994"
+  integrity sha512-LnLYq2Vy2guTZ8GQKKSXQK3+FRGPil75XEdkZqE6fiLixJhZJoJa5hT7lXxwe0ykVTt9LEThdTbOpT7KadS26Q==
+  dependencies:
+    "@wallet-standard/base" "^1.0.1"
+
+"@wallet-standard/base@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.npmmirror.com/@wallet-standard/base/-/base-1.0.1.tgz#860dd94d47c9e3c5c43b79d91c6afdbd7a36264e"
+  integrity sha512-1To3ekMfzhYxe0Yhkpri+Fedq0SYcfrOfJi3vbLjMwF2qiKPjTGLwZkf2C9ftdQmxES+hmxhBzTwF4KgcOwf8w==
+
+"@wallet-standard/core@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.npmmirror.com/@wallet-standard/core/-/core-1.0.1.tgz#4888fbdc89cb3eb655f07116eb176e49cab931c9"
+  integrity sha512-PqYTK5gtVfN3TAkSR5Gev3hj2asl7g+wV1ssKITw1LZU8VQIT4l1Y/3JJ75i/Iq7HPyMEfy0wJdqHTGvy87g2Q==
+  dependencies:
+    "@wallet-standard/app" "^1.0.1"
+    "@wallet-standard/base" "^1.0.1"
+    "@wallet-standard/features" "^1.0.1"
+    "@wallet-standard/wallet" "^1.0.1"
+
+"@wallet-standard/core@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.npmmirror.com/@wallet-standard/core/-/core-1.0.3.tgz#3b6743e207ca4e1e725ae20f1838b400fb0694ff"
+  integrity sha512-Jb33IIjC1wM1HoKkYD7xQ6d6PZ8EmMZvyc8R7dFgX66n/xkvksVTW04g9yLvQXrLFbcIjHrCxW6TXMhvpsAAzg==
+  dependencies:
+    "@wallet-standard/app" "^1.0.1"
+    "@wallet-standard/base" "^1.0.1"
+    "@wallet-standard/features" "^1.0.3"
+    "@wallet-standard/wallet" "^1.0.1"
+
+"@wallet-standard/features@^1.0.1", "@wallet-standard/features@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.npmmirror.com/@wallet-standard/features/-/features-1.0.3.tgz#c992876c5e4f7a0672f8869c4146c87e0dfe48c8"
+  integrity sha512-m8475I6W5LTatTZuUz5JJNK42wFRgkJTB0I9tkruMwfqBF2UN2eomkYNVf9RbrsROelCRzSFmugqjKZBFaubsA==
+  dependencies:
+    "@wallet-standard/base" "^1.0.1"
+
+"@wallet-standard/wallet@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.npmmirror.com/@wallet-standard/wallet/-/wallet-1.0.1.tgz#95438941a2a1ee12a794444357b59d53e19b374c"
+  integrity sha512-qkhJeuQU2afQTZ02yMZE5SFc91Fo3hyFjFkpQglHudENNyiSG0oUKcIjky8X32xVSaumgTZSQUAzpXnCTWHzKQ==
+  dependencies:
+    "@wallet-standard/base" "^1.0.1"
 
 JSONStream@^1.0.3, JSONStream@^1.3.5:
   version "1.3.5"
@@ -1660,6 +1788,11 @@ base-x@^3.0.2:
   dependencies:
     safe-buffer "^5.0.1"
 
+base-x@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.npmmirror.com/base-x/-/base-x-4.0.0.tgz#d0e3b7753450c73f8ad2389b5c018a4af7b2224a"
+  integrity sha512-FuwxlW4H5kh37X/oW59pwTzzTKRzfrrQwhmyspRM7swOEZcHtDZSCt45U6oKgtuFE+WYPblePMVIPR4RZrh/hw==
+
 base64-js@^1.0.2, base64-js@^1.3.1:
   version "1.5.1"
   resolved "https://registry.npmmirror.com/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
@@ -1882,6 +2015,13 @@ bs58@^4.0.0, bs58@^4.0.1:
   integrity sha512-Ok3Wdf5vOIlBrgCvTq96gBkJw+JUEzdBgyaza5HLtPm7yTHkjRy8+JzNyHF7BHa0bNWOQIp3m5YF0nnFcOIKLw==
   dependencies:
     base-x "^3.0.2"
+
+bs58@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.npmmirror.com/bs58/-/bs58-5.0.0.tgz#865575b4d13c09ea2a84622df6c8cbeb54ffc279"
+  integrity sha512-r+ihvQJvahgYT50JD05dyJNKlmmSlMoOGwn1lCcEzanPglg7TxYjioQUYehQ9mAR/+hOSd2jRc/Z2y5UxBymvQ==
+  dependencies:
+    base-x "^4.0.0"
 
 bs58check@^2.1.2:
   version "2.1.2"
@@ -2173,6 +2313,13 @@ create-hmac@^1.1.0, create-hmac@^1.1.4, create-hmac@^1.1.7:
     ripemd160 "^2.0.0"
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
+
+cross-fetch@^3.1.5:
+  version "3.1.5"
+  resolved "https://registry.npmmirror.com/cross-fetch/-/cross-fetch-3.1.5.tgz#e1389f44d9e7ba767907f7af8454787952ab534f"
+  integrity sha512-lvb1SBsI0Z7GDwmuid+mU3kWVBwTVUbe7S0H52yaaAdQOXq2YktTCZdlAcNKFzE6QtRz0snpw9bNiPeOIkkQvw==
+  dependencies:
+    node-fetch "2.6.7"
 
 cross-spawn@^7.0.2, cross-spawn@^7.0.3:
   version "7.0.3"
@@ -3364,6 +3511,24 @@ jayson@^3.4.4:
     uuid "^8.3.2"
     ws "^7.4.5"
 
+jayson@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.npmmirror.com/jayson/-/jayson-4.0.0.tgz#145a0ced46f900934c9b307e1332bcb0c7dbdb17"
+  integrity sha512-v2RNpDCMu45fnLzSk47vx7I+QUaOsox6f5X0CUlabAFwxoP+8MfAY0NQRFwOEYXIxm8Ih5y6OaEa5KYiQMkyAA==
+  dependencies:
+    "@types/connect" "^3.4.33"
+    "@types/node" "^12.12.54"
+    "@types/ws" "^7.4.4"
+    JSONStream "^1.3.5"
+    commander "^2.20.3"
+    delay "^5.0.0"
+    es6-promisify "^5.0.0"
+    eyes "^0.1.8"
+    isomorphic-ws "^4.0.1"
+    json-stringify-safe "^5.0.1"
+    uuid "^8.3.2"
+    ws "^7.4.5"
+
 jest-changed-files@^27.5.1:
   version "27.5.1"
   resolved "https://registry.npmmirror.com/jest-changed-files/-/jest-changed-files-27.5.1.tgz#a348aed00ec9bf671cc58a66fcbe7c3dfd6a68f5"
@@ -3774,6 +3939,11 @@ js-sdsl@^4.1.4:
   resolved "https://registry.npmmirror.com/js-sdsl/-/js-sdsl-4.1.5.tgz#1ff1645e6b4d1b028cd3f862db88c9d887f26e2a"
   integrity sha512-08bOAKweV2NUC1wqTtf3qZlnpOX/R2DU9ikpjOHs0H+ibQv3zpncVQg6um4uYtRtrwIX8M4Nh3ytK4HGlYAq7Q==
 
+js-sha3@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.npmmirror.com/js-sha3/-/js-sha3-0.8.0.tgz#b9b7a5da73afad7dedd0f8c463954cbde6818840"
+  integrity sha512-gF1cRrHhIzNfToc802P800N8PpXS+evLLXfsVpowqmAFR9uwbi89WvXg2QspOmXL8QL86J4T1EpFu+yUkwJY3Q==
+
 js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmmirror.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
@@ -4080,7 +4250,7 @@ node-addon-api@^2.0.0:
   resolved "https://registry.npmmirror.com/node-addon-api/-/node-addon-api-2.0.2.tgz#432cfa82962ce494b132e9d72a15b29f71ff5d32"
   integrity sha512-Ntyt4AIXyaLIuMHF6IOoTakB3K+RWxwtsHNRxllEoA6vPwP9o4866g6YWDLUdnucilZhmkxiHwHr11gAENw+QA==
 
-node-fetch@2:
+node-fetch@2, node-fetch@2.6.7:
   version "2.6.7"
   resolved "https://registry.npmmirror.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
   integrity sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==
@@ -4897,6 +5067,11 @@ superstruct@^0.14.2:
   version "0.14.2"
   resolved "https://registry.npmmirror.com/superstruct/-/superstruct-0.14.2.tgz#0dbcdf3d83676588828f1cf5ed35cda02f59025b"
   integrity sha512-nPewA6m9mR3d6k7WkZ8N8zpTWfenFH3q9pA2PkuiZxINr9DKB2+40wEQf0ixn8VaGuJ78AB6iWOtStI+/4FKZQ==
+
+superstruct@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.npmmirror.com/superstruct/-/superstruct-1.0.3.tgz#de626a5b49c6641ff4d37da3c7598e7a87697046"
+  integrity sha512-8iTn3oSS8nRGn+C2pgXSKPI3jmpm6FExNazNpjvqS6ZUJQCej3PUXEKM8NjHBOs54ExM+LPW/FBRhymrdcCiSg==
 
 supports-color@^5.3.0:
   version "5.5.0"
