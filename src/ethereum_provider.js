@@ -163,7 +163,7 @@ class FoxWeb3Provider extends BaseProvider {
         case "eth_sign":
           throw new ProviderRpcError(
             4200,
-            "Fox does not support eth_sign. Please use your owner sign method instead."
+            "Fox does not support eth_sign. Please use other sign method instead."
           );
         case "personal_sign":
           return this.personal_sign(payload);
