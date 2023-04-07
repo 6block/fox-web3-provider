@@ -4,6 +4,7 @@ import {
   SUI_TESTNET_CHAIN,
   SUI_LOCALNET_CHAIN,
 } from "@mysten/wallet-standard";
+import {  toB64, TransactionBlock } from "@mysten/sui.js";
 import BaseProvider from "./base_provider";
 import Utils from "./utils";
 
@@ -39,18 +40,22 @@ export class SuiProvider extends BaseProvider  {
           version: "1.0.0",
           on: this.on.bind(this),
       },
-      "sui:signTransaction": {
+      "sui:signTransactionBlock": {
           version: "2.0.0",
-          signTransaction: this.signTransaction.bind(this),
+          signTransactionBlock: this.signTransactionBlock.bind(this),
       },
-      "sui:signAndExecuteTransaction": {
-          version: "2.0.0",
-          signAndExecuteTransaction: this.signAndExecuteTransaction.bind(this),
+      "sui:signAndExecuteTransactionBlock": {
+          version: "1.0.0",
+          signAndExecuteTransactionBlock: this.signAndExecuteTransactionBlock.bind(this),
       },
       "suiWallet:stake": {
           version: "0.0.1",
           stake: this.stake.bind(this),
       },
+      "sui:signMessage": {
+        version: "1.0.0",
+        signMessage: this.signMessage.bind(this),
+    },
     };
   }
 
@@ -102,22 +107,43 @@ export class SuiProvider extends BaseProvider  {
     }
   }
 
-  async signTransaction(tx) {
-    return this.send("signTransaction", tx);
+  async signTransactionBlock(tx) {
+    if (!TransactionBlock.is(tx.transactionBlock)) {
+      throw new Error(
+        "Unexpect transaction format found. Ensure that you are using the `Transaction` class."
+      );
+    }
+    tx.account = (tx.account && tx.account.address) || (this.accounts[0] && this.accounts[0].address) || "",
+    tx.transaction = tx.transactionBlock.serialize();
+    return this.send("signTransactionBlock", tx);
   }
 
-  async signAndExecuteTransaction(input) {
-    return this.send("executeTransaction", {
-      type: "v2",
-      data: input.transaction,
+  async signAndExecuteTransactionBlock(input) {
+    if (!TransactionBlock.is(input.transactionBlock)) {
+      throw new Error(
+          "Unexpect transaction format found. Ensure that you are using the `Transaction` class."
+      );
+    }
+    const tx = {
+      type: "transaction",
+      data: input.transactionBlock.serialize(),
       options: input.options,
-    });
+      account: (input.account && input.account.address) || (this.accounts[0] && this.accounts[0].address) || "",
+    };
+    return this.send("signAndExecuteTransactionBlock", tx);
   }
 
   async stake (input) {
     return this.send({
         type: "stake",
         validatorAddress: input.validatorAddress,
+    });
+  }
+
+  async signMessage({ message, account }) {
+    return this.send("signMessage", {
+      message: toB64(message),
+      accountAddress: account.address,
     });
   }
 
@@ -138,7 +164,6 @@ export class SuiProvider extends BaseProvider  {
 
   async getAccounts() {
     console.log("==> getAccounts");
-    
     return this.send("getAccounts");
   }
 
