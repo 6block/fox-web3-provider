@@ -1,9 +1,3 @@
-// Copyright © 2017-2022 Trust Wallet.
-//
-// This file is part of Trust. The full Trust copyright notice, including
-// terms governing use, modification, and redistribution, is contained in the
-// file LICENSE at the root of the source code distribution tree.
-
 "use strict";
 
 import RPCServer from "./rpc";
@@ -105,7 +99,7 @@ class FoxWeb3Provider extends BaseProvider {
       default:
         throw new ProviderRpcError(
           4200,
-          `Trust does not support calling ${payload.method} synchronously without a callback. Please provide a callback parameter to call ${payload.method} asynchronously.`
+          `Fox does not support calling ${payload.method} synchronously without a callback. Please provide a callback parameter to call ${payload.method} asynchronously.`
         );
     }
     return response;
@@ -167,7 +161,10 @@ class FoxWeb3Provider extends BaseProvider {
         case "eth_chainId":
           return this.sendResponse(payload.id, this.eth_chainId());
         case "eth_sign":
-          return this.eth_sign(payload);
+          throw new ProviderRpcError(
+            4200,
+            "Fox does not support eth_sign. Please use your owner sign method instead."
+          );
         case "personal_sign":
           return this.personal_sign(payload);
         case "personal_ecRecover":
@@ -195,7 +192,7 @@ class FoxWeb3Provider extends BaseProvider {
         case "eth_subscribe":
           throw new ProviderRpcError(
             4200,
-            `Trust does not support calling ${payload.method}. Please use your own solution`
+            `Fox does not support calling ${payload.method}. Please use your own solution`
           );
         default:
           // call upstream rpc
