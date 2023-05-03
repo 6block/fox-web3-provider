@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "@metamask/eth-sig-util": "^4.0.1",
-    "@mysten/sui.js": "^0.30.0",
-    "@mysten/wallet-standard": "^0.4.3",
+    "@mysten/sui.js": "^0.33.0",
+    "@mysten/wallet-standard": "^0.5.5",
     "@solana/web3.js": "^1.5.0",
     "@wallet-standard/base": "^1.0.1",
     "@wallet-standard/core": "^1.0.3",
