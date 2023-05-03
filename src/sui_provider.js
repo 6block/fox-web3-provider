@@ -3,6 +3,7 @@ import {
   SUI_DEVNET_CHAIN,
   SUI_TESTNET_CHAIN,
   SUI_LOCALNET_CHAIN,
+  SUI_MAINNET_CHAIN,
 } from "@mysten/wallet-standard";
 import {  toB64, TransactionBlock } from "@mysten/sui.js";
 import BaseProvider from "./base_provider";
@@ -12,6 +13,7 @@ export const API_ENV = {
   local: "local",
   devnet :"devnet",
   testnet :"testnet",
+  mainnet :"mainnet",
 };
 
 
@@ -19,6 +21,7 @@ const API_ENV_TO_CHAIN = {
     [API_ENV.local]: SUI_LOCALNET_CHAIN,
     [API_ENV.devnet]: SUI_DEVNET_CHAIN,
     [API_ENV.testnet]: SUI_TESTNET_CHAIN,
+    [API_ENV.mainnet]: SUI_MAINNET_CHAIN,
 };
 
 export class SuiProvider extends BaseProvider  {
