@@ -27,6 +27,7 @@ class FoxWalletAptosProvider {
     this.connected = false;
     this.connectedAccount = null;
     this.callbacks = new Map();
+    this.networkChangeCallbacks = [];
   }
 
   invokeRNMethod(payload) {
@@ -134,6 +135,18 @@ class FoxWalletAptosProvider {
         reject(new PetraError(JSON.parse(error)));
       });
     });
+  }
+
+  onNetworkChange(callback) {
+    this.networkChangeCallbacks.push(callback);
+  }
+
+  // RN -> DAPP
+  changeNetwork(network) {
+    const callbacks = this.networkChangeCallbacks;
+    for (let callback of callbacks) {
+      callback(network);
+    }
   }
 
 
