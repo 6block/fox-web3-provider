@@ -1,9 +1,3 @@
-// Copyright © 2017-2022 Trust Wallet.
-//
-// This file is part of Trust. The full Trust copyright notice, including
-// terms governing use, modification, and redistribution, is contained in the
-// file LICENSE at the root of the source code distribution tree.
-
 "use strict";
 
 import Utils from "./utils";
@@ -33,6 +27,7 @@ class FoxWalletAptosProvider {
     this.connected = false;
     this.connectedAccount = null;
     this.callbacks = new Map();
+    this.networkChangeCallbacks = [];
   }
 
   invokeRNMethod(payload) {
@@ -140,6 +135,18 @@ class FoxWalletAptosProvider {
         reject(new PetraError(JSON.parse(error)));
       });
     });
+  }
+
+  onNetworkChange(callback) {
+    this.networkChangeCallbacks.push(callback);
+  }
+
+  // RN -> DAPP
+  changeNetwork(network) {
+    const callbacks = this.networkChangeCallbacks;
+    for (let callback of callbacks) {
+      callback(network);
+    }
   }
 
 
