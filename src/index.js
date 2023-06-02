@@ -6,6 +6,8 @@ import FoxWalletSolanaProvider from "./solana_provider";
 import FoxWalletAptosProvider from "./aptos_provider";
 import { registerWallet } from "@wallet-standard/core";
 import { SuiProvider } from "./sui_provider";
+import { initialize } from "foxwallet-standard-wallet";
+import { BTCProvider } from "./btc_provider";
 
 window.foxwallet = {
   Provider: FoxWeb3Provider,
@@ -15,17 +17,16 @@ window.foxwallet = {
   postMessage: null,
 };
 
-
 window.aptos = new FoxWalletAptosProvider();
 window.petra = window.aptos;
 if(window.foxwallet){
   window.foxwallet.aptos = window.aptos;
 }
 
-window.solana = new FoxWalletSolanaProvider();
-window.clover_solana = window.solana;
-window.phantom = {solana: window.solana};
-window.glowSolana = window.solana;
+let foxWalletSolanaProvider = new FoxWalletSolanaProvider();
+initialize(foxWalletSolanaProvider);
+
+window.solana = foxWalletSolanaProvider;
 if(window.foxwallet){
   window.foxwallet.solana = window.solana;
 }
@@ -35,3 +36,6 @@ window.suiWallet = new SuiProvider();
 registerWallet(window.suiWallet);
 
 window.foxwallet.suiWallet = window.suiWallet;
+
+window.unisat = new BTCProvider();
+window.foxwallet.bitcoin = window.unisat;
