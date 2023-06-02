@@ -2,6 +2,11 @@
 import { EventEmitter } from "events";
 import { decode as bs58Decode } from "bs58";
 import Utils from "./utils";
+import { Buffer } from "buffer";
+
+function isVersionedTransaction(transaction) {
+  return "version" in transaction;
+}
 
 class FoxWalletSolanaProvider extends EventEmitter {
   constructor() {
@@ -25,6 +30,9 @@ class FoxWalletSolanaProvider extends EventEmitter {
           this.publicKey = {
             toBytes: () => {
               return bs58Decode(account);
+            },
+            toBase58: () => {
+              return account;
             },
             toJSON: () => {
               return account;
@@ -127,7 +135,6 @@ class FoxWalletSolanaProvider extends EventEmitter {
         .then((message) => {
           const originalParam = JSON.parse(message);
           const sig = new Uint8Array(Buffer.from(originalParam, "base64"));
-          console.log("window.foxwallet[callbackId]", callbackId, { sig });
           resolve({ signature: sig });
         })
         .catch((error) => {
@@ -143,24 +150,37 @@ class FoxWalletSolanaProvider extends EventEmitter {
         reject(new Error("no transaction to sign"));
         return;
       }
-      const tBuffer = transaction.serialize({
-        requireAllSignatures: false,
-        verifySignatures: false,
-      });
+      let tBuffer;
+      if (isVersionedTransaction(transaction)) {
+        tBuffer = transaction.serialize();
+      } else {
+        tBuffer = transaction.serialize({
+          requireAllSignatures: false,
+          verifySignatures: false,
+        });
+      }
       let object = {
         id: callbackId,
         name: "signTransaction",
-        object: tBuffer.toString("base64"),
+        object: Buffer.from(tBuffer).toString("base64"),
         chain: this.chain,
       };
       this.invokeRNMethod(object)
         .then((output) => {
           try {
-            const signed = transaction.constructor.from(
-              new Uint8Array(Buffer.from(JSON.parse(output), "base64"))
-            );
-            Utils.mapSignatureBack(signed, transaction);
-            resolve(transaction);
+            let buffer = Buffer.from(JSON.parse(output), "base64");
+            let signed;
+            if (transaction.constructor.deserialize) {
+              // VersionedTransaction
+              let signed = transaction.constructor.deserialize(
+                new Uint8Array(buffer)
+              );
+              resolve(signed);
+            } else {
+              signed = transaction.constructor.from(new Uint8Array(buffer));
+              Utils.mapSignatureBack(signed, transaction);
+              resolve(transaction);
+            }
           } catch (e) {
             reject(new Error("transaction is not valid"));
           }
@@ -178,14 +198,22 @@ class FoxWalletSolanaProvider extends EventEmitter {
         reject(new Error("no transaction to sign"));
         return;
       }
-      const tBuffer = transaction.serialize({
-        requireAllSignatures: false,
-        verifySignatures: false,
-      });
+      let tBuffer;
+      if (isVersionedTransaction(transaction)) {
+        tBuffer = transaction.serialize();
+      } else {
+        tBuffer = transaction.serialize({
+          requireAllSignatures: false,
+          verifySignatures: false,
+        });
+      }
       let object = {
         id: callbackId,
         name: "signAndSendTransaction",
-        object: { transaction: tBuffer.toString("base64"), options },
+        object: {
+          transaction: Buffer.from(tBuffer).toString("base64"),
+          options,
+        },
         chain: this.chain,
       };
       this.invokeRNMethod(object)
@@ -205,14 +233,17 @@ class FoxWalletSolanaProvider extends EventEmitter {
         reject(new Error("no transaction to sign"));
       }
       const callbackId = Utils.genId();
-      const serialized = transactions.map((transaction) =>
-        transaction
+      const serialized = transactions.map((transaction) => {
+        if (isVersionedTransaction(transaction)) {
+          return Buffer.from(transaction.serialize()).toString("base64");
+        }
+        return transaction
           .serialize({
             requireAllSignatures: false,
             verifySignatures: false,
           })
-          .toString("base64")
-      );
+          .toString("base64");
+      });
       let object = {
         id: callbackId,
         name: "signAllTransactions",
@@ -223,10 +254,17 @@ class FoxWalletSolanaProvider extends EventEmitter {
         .then((output) => {
           const outputObj = JSON.parse(output);
           for (let i = 0; i < transactions.length; i++) {
-            const signedTransaction = transactions[i].constructor.from(
-              Buffer.from(outputObj[i], "base64")
-            );
-            Utils.mapSignatureBack(signedTransaction, transactions[i]);
+            let signedTransaction;
+            if (transactions[i].constructor.deserialize) {
+              signedTransaction = transactions[i].constructor.deserialize(
+                Buffer.from(outputObj[i], "base64")
+              );
+            } else {
+              signedTransaction = transactions[i].constructor.from(
+                Buffer.from(outputObj[i], "base64")
+              );
+              Utils.mapSignatureBack(signedTransaction, transactions[i]);
+            }
           }
           console.log("window.foxwallet[callbackId]", callbackId, {
             transactions,
