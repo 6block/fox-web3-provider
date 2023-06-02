@@ -7,6 +7,7 @@ import FoxWalletAptosProvider from "./aptos_provider";
 import { registerWallet } from "@wallet-standard/core";
 import { SuiProvider } from "./sui_provider";
 import { initialize } from "foxwallet-standard-wallet";
+import { BTCProvider } from "./btc_provider";
 
 window.foxwallet = {
   Provider: FoxWeb3Provider,
@@ -35,3 +36,6 @@ window.suiWallet = new SuiProvider();
 registerWallet(window.suiWallet);
 
 window.foxwallet.suiWallet = window.suiWallet;
+
+window.unisat = new BTCProvider();
+window.foxwallet.bitcoin = window.unisat;
