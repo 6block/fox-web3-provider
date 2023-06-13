@@ -60,6 +60,10 @@ class Utils {
       }
     });
   }
+
+  static resemblesAddress(address) {
+    return address.length === 2 + 20 * 2;
+  }
 }
 
 module.exports = Utils;

@@ -253,7 +253,15 @@ class FoxWeb3Provider extends BaseProvider {
   }
 
   personal_sign(payload) {
-    const message = payload.params[0];
+    const firstParam = payload.params[0];
+    const secondParam = payload.params[1];
+    let message = firstParam;
+    if (
+      Utils.resemblesAddress(firstParam) &&
+      !Utils.resemblesAddress(secondParam)
+    ) {
+      message = secondParam;
+    }
     const buffer = Utils.messageToBuffer(message);
     if (buffer.length === 0) {
       // hex it
@@ -311,7 +319,11 @@ class FoxWeb3Provider extends BaseProvider {
    */
   postMessage(handler, id, data) {
     console.log("====> hander: ", handler);
-    if (this.ready || handler === "requestAccounts" || handler === "switchEthereumChain") {
+    if (
+      this.ready ||
+      handler === "requestAccounts" ||
+      handler === "switchEthereumChain"
+    ) {
       let object = {
         id: id,
         name: handler,
