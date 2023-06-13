@@ -259,29 +259,22 @@ class FoxWeb3Provider extends BaseProvider {
   }
 
   personal_sign(payload) {
-    var message;
-    let address;
-
-    if (this.address === payload.params[0].toLowerCase()) {
-      message = payload.params[1];
-      address = payload.params[0];
-    } else {
-      message = payload.params[0];
-      address = payload.params[1];
+    const firstParam = payload.params[0];
+    const secondParam = payload.params[1];
+    let message = firstParam;
+    if (
+      Utils.resemblesAddress(firstParam) &&
+      !Utils.resemblesAddress(secondParam)
+    ) {
+      message = secondParam;
     }
     const buffer = Utils.messageToBuffer(message);
     if (buffer.length === 0) {
       // hex it
       const hex = Utils.bufferToHex(message);
-      this.postMessage("signPersonalMessage", payload.id, {
-        data: hex,
-        address,
-      });
+      this.postMessage("signPersonalMessage", payload.id, { data: hex });
     } else {
-      this.postMessage("signPersonalMessage", payload.id, {
-        data: message,
-        address,
-      });
+      this.postMessage("signPersonalMessage", payload.id, { data: message });
     }
   }
 
@@ -358,7 +351,11 @@ class FoxWeb3Provider extends BaseProvider {
    */
   postMessage(handler, id, data) {
     console.log("====> hander: ", handler);
-    if (this.ready || handler === "requestAccounts" || handler === "switchEthereumChain") {
+    if (
+      this.ready ||
+      handler === "requestAccounts" ||
+      handler === "switchEthereumChain"
+    ) {
       let object = {
         id: id,
         name: handler,
