@@ -336,7 +336,6 @@ class TrustWeb3Provider extends BaseProvider {
       symbol: options.symbol,
       decimals: options.decimals || 0,
       image: options.image || "",
-      address: options.address,
     });
   }
 
