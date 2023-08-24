@@ -64,6 +64,14 @@ class Utils {
   static resemblesAddress(address) {
     return address.length === 2 + 20 * 2;
   }
+
+  static uint8ArrayToHex(byteArray) {
+    return Array.from(byteArray)
+      .map((byte) => {
+        return ("0" + (byte & 0xff).toString(16)).slice(-2);
+      })
+      .join("");
+  }
 }
 
 module.exports = Utils;

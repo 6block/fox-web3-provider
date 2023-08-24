@@ -18,7 +18,7 @@ class FoxAleoProvider extends BaseProvider {
 
   setAddress(address) {
     this.publicKey = address;
-    this.ready = true;
+    this.ready = !!address;
   }
 
   setConfig(config) {
@@ -69,7 +69,9 @@ class FoxAleoProvider extends BaseProvider {
   }
 
   async signMessage(message) {
-    return this.send("signMessage", { message });
+    return this.send("signMessage", {
+      message: Utils.uint8ArrayToHex(message),
+    });
   }
 
   async requestViewKey() {
