@@ -8,18 +8,19 @@ import { registerWallet } from "@wallet-standard/core";
 import { SuiProvider } from "./sui_provider";
 import { initialize } from "foxwallet-standard-wallet";
 import { BTCProvider } from "./btc_provider";
+import FoxAleoProvider from "./aleo_provider";
 
 window.foxwallet = {
   Provider: FoxWeb3Provider,
   SolanaProvider: FoxWalletSolanaProvider,
-  // CosmosProvider: TrustCosmosWeb3Provider,
   AptosProvider: FoxWalletAptosProvider,
+  AleoProvider: FoxAleoProvider,
   postMessage: null,
 };
 
 window.aptos = new FoxWalletAptosProvider();
 window.petra = window.aptos;
-if(window.foxwallet){
+if (window.foxwallet) {
   window.foxwallet.aptos = window.aptos;
 }
 
@@ -27,7 +28,7 @@ let foxWalletSolanaProvider = new FoxWalletSolanaProvider();
 initialize(foxWalletSolanaProvider);
 
 window.solana = foxWalletSolanaProvider;
-if(window.foxwallet){
+if (window.foxwallet) {
   window.foxwallet.solana = window.solana;
 }
 
