@@ -40,12 +40,16 @@ class FoxAleoProvider extends BaseProvider {
     });
   }
 
-  async requestRecords(program) {
-    return this.send("requestRecords", { program });
+  async requestRecords(program, filter) {
+    return this.send("requestRecords", { program, filter });
   }
 
   async requestTransaction(transaction) {
     return this.send("requestTransaction", { transaction });
+  }
+
+  async requestExecution(transaction) {
+    return this.send("requestExecution", { transaction });
   }
 
   async requestBulkTransactions(transactions) {
@@ -58,6 +62,18 @@ class FoxAleoProvider extends BaseProvider {
 
   async transactionStatus(txId) {
     return this.send("transactionStatus", { transactionId: txId });
+  }
+
+  async getExecution(txId) {
+    return this.send("getExecution", { transactionId: txId });
+  }
+
+  async requestRecordPlaintexts(program) {
+    return this.send("requestRecordPlaintexts", { program });
+  }
+
+  async requestTransactionHistory(program, order) {
+    return this.send("requestTransactionHistory", { program, order });
   }
 
   async connect(decryptPermission, network) {
