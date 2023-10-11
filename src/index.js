@@ -9,12 +9,14 @@ import { SuiProvider } from "./sui_provider";
 import { initialize } from "foxwallet-standard-wallet";
 import { BTCProvider } from "./btc_provider";
 import FoxAleoProvider from "./aleo_provider";
+import FoxQtumProvider from "./qtum_provider";
 
 window.foxwallet = {
   Provider: FoxWeb3Provider,
   SolanaProvider: FoxWalletSolanaProvider,
   AptosProvider: FoxWalletAptosProvider,
   AleoProvider: FoxAleoProvider,
+  QtumProvider: FoxQtumProvider,
   postMessage: null,
 };
 
