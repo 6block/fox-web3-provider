@@ -62,6 +62,9 @@ class Utils {
   }
 
   static resemblesAddress(address) {
+    if (typeof address !== "string") {
+      return false;
+    }
     return address.length === 2 + 20 * 2;
   }
 
