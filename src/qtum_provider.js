@@ -8,17 +8,17 @@ import isUtf8 from "isutf8";
 import { TypedDataUtils, SignTypedDataVersion } from "@metamask/eth-sig-util";
 import BaseProvider from "./base_provider";
 
-class FoxWeb3Provider extends BaseProvider {
+class FoxQtumProvider extends BaseProvider {
   constructor(config) {
-    super(config);
+    super();
     this.setConfig(config);
 
     this.isFoxWallet = true;
-    this.chain = "ETH";
+    this.chain = "QTUM";
     this.idMapping = new IdMapping();
     this.callbacks = new Map();
     this.wrapResults = new Map();
-    this.isMetaMask = !!config.ethereum.isMetaMask;
+    this.isMetaMask = !!config.qtum.isMetaMask;
 
     this.emitConnect(this.chainId);
   }
@@ -30,9 +30,9 @@ class FoxWeb3Provider extends BaseProvider {
     try {
       for (var i = 0; i < window.frames.length; i++) {
         const frame = window.frames[i];
-        if (frame.ethereum && frame.ethereum.isFoxWallet) {
-          frame.ethereum.address = lowerAddress;
-          frame.ethereum.ready = !!address;
+        if (frame.qtum && frame.qtum.isFoxWallet) {
+          frame.qtum.address = lowerAddress;
+          frame.qtum.ready = !!address;
         }
       }
     } catch (error) {
@@ -41,19 +41,19 @@ class FoxWeb3Provider extends BaseProvider {
   }
 
   setConfig(config) {
-    this.setAddress(config.ethereum.address);
+    this.setAddress(config.qtum.address);
 
-    this.networkVersion = "" + config.ethereum.chainId;
-    this.chainId = "0x" + (config.ethereum.chainId || 1).toString(16);
-    this.rpc = new RPCServer(config.ethereum.rpcUrl);
+    this.networkVersion = "" + config.qtum.chainId;
+    this.chainId = "0x" + (config.qtum.chainId || 81).toString(16);
+    this.rpc = new RPCServer(config.qtum.rpcUrl);
     this.isDebug = !!config.isDebug;
   }
 
   request(payload) {
     // this points to window in methods like web3.eth.getAccounts()
     var that = this;
-    if (!(this instanceof FoxWeb3Provider)) {
-      that = window.ethereum;
+    if (!(this instanceof FoxQtumProvider)) {
+      that = window.qtum;
     }
     return that._request(payload, false);
   }
@@ -70,7 +70,7 @@ class FoxWeb3Provider extends BaseProvider {
    */
   enable() {
     console.log(
-      "enable() is deprecated, please use window.ethereum.request({method: 'eth_requestAccounts'}) instead."
+      "enable() is deprecated, please use window.qtum.request({method: 'eth_requestAccounts'}) instead."
     );
     return this.request({ method: "eth_requestAccounts", params: [] });
   }
@@ -110,12 +110,12 @@ class FoxWeb3Provider extends BaseProvider {
    */
   sendAsync(payload, callback) {
     console.log(
-      "sendAsync(data, callback) is deprecated, please use window.ethereum.request(data) instead."
+      "sendAsync(data, callback) is deprecated, please use window.qtum.request(data) instead."
     );
     // this points to window in methods like web3.eth.getAccounts()
     var that = this;
-    if (!(this instanceof FoxWeb3Provider)) {
-      that = window.ethereum;
+    if (!(this instanceof FoxQtumProvider)) {
+      that = window.qtum;
     }
     if (Array.isArray(payload)) {
       Promise.all(payload.map((_payload) => that._request(_payload)))
@@ -160,21 +160,36 @@ class FoxWeb3Provider extends BaseProvider {
           return this.sendResponse(payload.id, this.net_version());
         case "eth_chainId":
           return this.sendResponse(payload.id, this.eth_chainId());
+        case "btc_sign":
+          throw new ProviderRpcError(
+            4200,
+            "Fox does not support btc_sign. Please use other sign method instead."
+          );
         case "eth_sign":
           throw new ProviderRpcError(
             4200,
             "Fox does not support eth_sign. Please use other sign method instead."
           );
         case "personal_sign":
-          return this.personal_sign(payload);
+          return this.personal_sign(payload, false);
         case "personal_ecRecover":
-          return this.personal_ecRecover(payload);
+          return this.personal_ecRecover(payload, false);
         case "eth_signTypedData_v3":
-          return this.eth_signTypedData(payload, SignTypedDataVersion.V3);
+          return this.eth_signTypedData(payload, SignTypedDataVersion.V3, false);
         case "eth_signTypedData_v4":
-          return this.eth_signTypedData(payload, SignTypedDataVersion.V4);
+          return this.eth_signTypedData(payload, SignTypedDataVersion.V4, false);
         case "eth_signTypedData":
-          return this.eth_signTypedData(payload, SignTypedDataVersion.V1);
+          return this.eth_signTypedData(payload, SignTypedDataVersion.V1, false);
+        case "btc_personalSign":
+          return this.personal_sign(payload, true);
+        case "btc_ecRecover":
+          return this.personal_ecRecover(payload, true);
+        case "btc_signTypedData_v3":
+          return this.eth_signTypedData(payload, SignTypedDataVersion.V3, true);
+        case "btc_signTypedData_v4":
+          return this.eth_signTypedData(payload, SignTypedDataVersion.V4, true);
+        case "btc_signTypedData":
+          return this.eth_signTypedData(payload, SignTypedDataVersion.V1, true);
         case "eth_sendTransaction":
           return this.eth_sendTransaction(payload);
         case "eth_requestAccounts":
@@ -223,6 +238,7 @@ class FoxWeb3Provider extends BaseProvider {
   }
 
   emitChainChanged(chainId) {
+    console.log("emitChainChanged", chainId);
     this.emit("chainChanged", chainId);
     this.emit("networkChanged", chainId);
   }
@@ -243,22 +259,17 @@ class FoxWeb3Provider extends BaseProvider {
     return this.chainId;
   }
 
-  eth_sign(payload) {
-    const [address, message] = payload.params;
-    const buffer = Utils.messageToBuffer(message);
+  eth_sign(payload, btcSign) {
+    const buffer = Utils.messageToBuffer(payload.params[1]);
     const hex = Utils.bufferToHex(buffer);
-
     if (isUtf8(buffer)) {
-      this.postMessage("signPersonalMessage", payload.id, {
-        data: hex,
-        address,
-      });
+      this.postMessage("signPersonalMessage", payload.id, { data: hex, btcSign });
     } else {
-      this.postMessage("signMessage", payload.id, { data: hex, address });
+      this.postMessage("signMessage", payload.id, { data: hex, btcSign });
     }
   }
 
-  personal_sign(payload) {
+  personal_sign(payload, btcSign) {
     const firstParam = payload.params[0];
     const secondParam = payload.params[1];
     let message = firstParam;
@@ -272,20 +283,22 @@ class FoxWeb3Provider extends BaseProvider {
     if (buffer.length === 0) {
       // hex it
       const hex = Utils.bufferToHex(message);
-      this.postMessage("signPersonalMessage", payload.id, { data: hex });
+      this.postMessage("signPersonalMessage", payload.id, { data: hex, btcSign });
     } else {
-      this.postMessage("signPersonalMessage", payload.id, { data: message });
+      this.postMessage("signPersonalMessage", payload.id, { data: message, btcSign });
     }
   }
 
-  personal_ecRecover(payload) {
+  personal_ecRecover(payload, btcSign) {
     this.postMessage("ecRecover", payload.id, {
       signature: payload.params[1],
       message: payload.params[0],
+      from: payload.params[2],
+      btcSign,
     });
   }
 
-  eth_signTypedData(payload, version) {
+  eth_signTypedData(payload, version, btcSign) {
     let address;
     let data;
 
@@ -297,7 +310,7 @@ class FoxWeb3Provider extends BaseProvider {
     ) {
       data = payload.params[1];
       address = payload.params[0];
-    } else {
+    }else {
       data = payload.params[0];
       address = payload.params[1];
     }
@@ -342,6 +355,7 @@ class FoxWeb3Provider extends BaseProvider {
       raw: typeof data === "string" ? data : JSON.stringify(data),
       address,
       version,
+      btcSign,
     });
   }
 
@@ -435,8 +449,8 @@ class FoxWeb3Provider extends BaseProvider {
       for (var i = 0; i < window.frames.length; i++) {
         const frame = window.frames[i];
         try {
-          if (frame.ethereum.callbacks.has(id)) {
-            frame.ethereum.sendResponse(id, result);
+          if (frame.qtum.callbacks.has(id)) {
+            frame.qtum.sendResponse(id, result);
           }
         } catch (error) {
           console.log(`send response to frame error: ${error}`);
@@ -451,4 +465,4 @@ class FoxWeb3Provider extends BaseProvider {
   }
 }
 
-module.exports = FoxWeb3Provider;
+module.exports = FoxQtumProvider;
