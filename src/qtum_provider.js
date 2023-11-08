@@ -209,6 +209,36 @@ class FoxQtumProvider extends BaseProvider {
             4200,
             `Fox does not support calling ${payload.method}. Please use your own solution`
           );
+        case "eth_getTransactionByHash":
+        case "eth_getTransactionByBlockNumberAndIndex":
+        case "eth_getTransactionByBlockHashAndIndex":
+          // call upstream rpc
+          this.callbacks.delete(payload.id);
+          this.wrapResults.delete(payload.id);
+          payload.jsonrpc = "2.0";
+          return this.rpc
+            .call(payload)
+            .then((response) => {
+              if (response.result){
+                if(response.result.blockHash === ""){
+                  response.result.blockHash = null;
+                }
+
+                if(response.result.blockNumber === ""){
+                  response.result.blockNumber = null;
+                }
+
+                if(response.result.transactionIndex === ""){
+                  response.result.transactionIndex = null;
+                }
+              }
+
+              if (this.isDebug) {
+                console.log(`<== rpc response ${JSON.stringify(response)}`);
+              }
+              wrapResult ? resolve(response) : resolve(response.result);
+            })
+            .catch(reject);
         default:
           // call upstream rpc
           this.callbacks.delete(payload.id);
