@@ -76,8 +76,8 @@ class FoxAleoProvider extends BaseProvider {
     return this.send("requestTransactionHistory", { program, order });
   }
 
-  async connect(decryptPermission, network) {
-    return this.send("connect", { decryptPermission, network });
+  async connect(decryptPermission, network, programs) {
+    return this.send("connect", { decryptPermission, network, programs });
   }
 
   async disconnect() {
