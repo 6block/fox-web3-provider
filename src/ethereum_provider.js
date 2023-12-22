@@ -129,6 +129,10 @@ class FoxWeb3Provider extends BaseProvider {
     }
   }
 
+  get selectedAddress() {
+    return this.address;
+  }
+
   /**
    * @private Internal rpc handler
    */
@@ -292,7 +296,7 @@ class FoxWeb3Provider extends BaseProvider {
     ) {
       data = payload.params[1];
       address = payload.params[0];
-    }else {
+    } else {
       data = payload.params[0];
       address = payload.params[1];
     }
