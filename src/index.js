@@ -10,6 +10,7 @@ import { initialize } from "foxwallet-standard-wallet";
 import { BTCProvider } from "./btc_provider";
 import FoxAleoProvider from "./aleo_provider";
 import FoxQtumProvider from "./qtum_provider";
+import { NOSTRProvider } from "./nostr_provider";
 
 window.foxwallet = {
   Provider: FoxWeb3Provider,
@@ -42,3 +43,6 @@ window.foxwallet.suiWallet = window.suiWallet;
 
 window.unisat = new BTCProvider();
 window.foxwallet.bitcoin = window.unisat;
+
+window.nostr = new NOSTRProvider();
+window.foxwallet.nostr = window.nostr;
