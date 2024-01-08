@@ -395,7 +395,7 @@ class FoxWeb3Provider extends BaseProvider {
       }
     } else {
       // don't forget to verify in the app
-      this.sendError(id, new ProviderRpcError(4100, "provider is not ready"));
+      this.sendError(id, "provider is not ready", 4100);
     }
   }
 
@@ -441,6 +441,18 @@ class FoxWeb3Provider extends BaseProvider {
           console.log(`send response to frame error: ${error}`);
         }
       }
+    }
+  }
+
+  sendError(id, message, code) {
+    if (typeof message !== "string") {
+      console.warn("sendError now takes string message and code");
+      return;
+    }
+    let callback = this.callbacks.get(id);
+    if (callback) {
+      callback(new ProviderRpcError(code, message));
+      this.callbacks.delete(id);
     }
   }
 
