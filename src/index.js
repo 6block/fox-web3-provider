@@ -11,6 +11,7 @@ import { BTCProvider } from "./btc_provider";
 import FoxAleoProvider from "./aleo_provider";
 import FoxQtumProvider from "./qtum_provider";
 import { NOSTRProvider } from "./nostr_provider";
+import { CustomProvider } from "./custom_provider";
 
 window.foxwallet = {
   Provider: FoxWeb3Provider,
@@ -46,3 +47,5 @@ window.foxwallet.bitcoin = window.unisat;
 
 window.nostr = new NOSTRProvider();
 window.foxwallet.nostr = window.nostr;
+
+window.foxwallet.custom = new CustomProvider();
