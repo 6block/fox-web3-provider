@@ -95,8 +95,8 @@ export class BTCProvider extends BaseProvider  {
     this.emit("networkChanged", network);
   }
 
-  accountsChanged(network) {
-    this.emit("accountsChanged", network);
+  accountsChanged(addresses) {
+    this.emit("accountsChanged", addresses);
   }
 
   send(method, params) {
