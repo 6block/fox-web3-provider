@@ -6,15 +6,15 @@ import ProviderRpcError from "./error";
 import { Buffer } from "buffer";
 import CosmJSOfflineSigner from "./cosmjs_adapter";
 
-export class TrustCosmosWeb3Provider extends BaseProvider {
+export class FoxWalletCosmosWeb3Provider extends BaseProvider {
   constructor(config) {
     super(config);
 
     this.chain = "COSMOS";
     this.callbacks = new Map();
     this.mode = "extension";
-    this.isKeplr = true;
-    this.version = "0.10.16";
+    this.isFoxWallet = true;
+    this.version = "1.0.0";
   }
 
   enable(chainIds) {
@@ -28,12 +28,12 @@ export class TrustCosmosWeb3Provider extends BaseProvider {
   getKey(chainId) {
     return this._request("requestAccounts", { chainId: chainId }).then(
       (response) => {
-        const account = JSON.parse(response);
         return {
           algo: "secp256k1",
-          address: account.address,
-          bech32Address: account.address,
-          pubKey: Buffer.from(account.pubKey, "hex"),
+          address: response.address,
+          bech32Address: response.address,
+          pubKey: Buffer.from(response.pubKey, "hex"),
+          username: response.name,
         };
       }
     );
@@ -54,22 +54,22 @@ export class TrustCosmosWeb3Provider extends BaseProvider {
   signAmino(chainId, signerAddress, signDoc) {
     return this._request("signAmino", {
       chainId: chainId,
-      sign_doc: signDoc,
+      signDoc: signDoc,
     }).then((signatures) => {
-      return { signed: signDoc, signature: JSON.parse(signatures)[0] };
+      return { signed: signDoc, signature: signatures[0] };
     });
   }
 
   signDirect(chainId, signerAddress, signDoc) {
     const object = {
-      body_bytes: Utils.bufferToHex(signDoc.bodyBytes),
-      auth_info_bytes: Utils.bufferToHex(signDoc.authInfoBytes),
+      bodyBytes: Utils.bufferToHex(signDoc.bodyBytes),
+      authInfoBytes: Utils.bufferToHex(signDoc.authInfoBytes),
     };
     return this._request("signDirect", {
       chainId: chainId,
-      sign_doc: object,
+      signDoc: object,
     }).then((signatures) => {
-      return { signed: signDoc, signature: JSON.parse(signatures)[0] };
+      return { signed: signDoc, signature: signatures[0] };
     });
   }
 
@@ -79,7 +79,7 @@ export class TrustCosmosWeb3Provider extends BaseProvider {
 
     return this._request("signArbitrary", { chainId: chainId, data: hex }).then(
       (result) => {
-        const signature = JSON.parse(result)[0].signature;
+        const signature = result[0].signature;
         const signDoc = {};
         return { signDoc, signature };
       }
@@ -139,4 +139,4 @@ export class TrustCosmosWeb3Provider extends BaseProvider {
   }
 }
 
-module.exports = TrustCosmosWeb3Provider;
+module.exports = FoxWalletCosmosWeb3Provider;
