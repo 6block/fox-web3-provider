@@ -12,6 +12,7 @@ import FoxAleoProvider from "./aleo_provider";
 import FoxQtumProvider from "./qtum_provider";
 import { NOSTRProvider } from "./nostr_provider";
 import { CustomProvider } from "./custom_provider";
+import FoxCosmosProvider from "./cosmos_provider";
 
 window.foxwallet = {
   Provider: FoxWeb3Provider,
@@ -19,6 +20,7 @@ window.foxwallet = {
   AptosProvider: FoxWalletAptosProvider,
   AleoProvider: FoxAleoProvider,
   QtumProvider: FoxQtumProvider,
+  CosmosProvider: FoxCosmosProvider,
   postMessage: null,
 };
 
@@ -49,3 +51,6 @@ window.nostr = new NOSTRProvider();
 window.foxwallet.nostr = window.nostr;
 
 window.foxwallet.custom = new CustomProvider();
+
+window.keplr = new FoxCosmosProvider();
+window.foxwallet.keplr = window.keplr;
