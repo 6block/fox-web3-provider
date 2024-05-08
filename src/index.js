@@ -52,5 +52,5 @@ window.foxwallet.nostr = window.nostr;
 
 window.foxwallet.custom = new CustomProvider();
 
-window.keplr = new FoxCosmosProvider();
-window.foxwallet.keplr = window.keplr;
+window.cosmos = new FoxCosmosProvider();
+window.foxwallet.cosmos = window.cosmos;
