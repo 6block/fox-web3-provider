@@ -8,6 +8,11 @@ import isUtf8 from "isutf8";
 import { TypedDataUtils, SignTypedDataVersion } from "@metamask/eth-sig-util";
 import BaseProvider from "./base_provider";
 
+export const NETWORK_TYPES = {
+  livenet :"livenet",
+  testnet :"testnet",
+};
+
 class FoxQtumProvider extends BaseProvider {
   constructor(config) {
     super();
@@ -22,6 +27,179 @@ class FoxQtumProvider extends BaseProvider {
 
     this.emitConnect(this.chainId);
   }
+
+  // eth = {
+  //   isMetaMask: this.isMetaMask,
+  //   isConnected: this.isConnected,
+  //   request: this.request,
+  //   on: this.on,
+  //
+  //   setAddress: this.setAddress,
+  //   setConfig: this.setConfig,
+  //   enable: this.enable,
+  //   send: this.send,
+  //   sendAsync: this.sendAsync,
+  //
+  //   personal_sign: this.personal_sign,
+  //   personal_ecRecover: this.personal_ecRecover,
+  //   eth_signTypedData: this.eth_signTypedData,
+  //   eth_sendTransaction: this.eth_sendTransaction,
+  //   eth_requestAccounts: this.eth_requestAccounts,
+  //   wallet_watchAsset: this.wallet_watchAsset,
+  //   wallet_addEthereumChain: this.wallet_addEthereumChain,
+  //   wallet_switchEthereumChain: this.wallet_switchEthereumChain,
+  // };
+
+  //====================================
+  //====================================
+  //===== unisat like btc provider =====
+  //====================================
+  //====================================
+  async assertConnected() {
+    await this.getAccounts();
+    if (!this.ready) {
+      await this.sendPromise("btc_requestAccounts");
+    }
+  }
+  async requestAccounts() {
+    let accounts = await this.sendPromise("btc_requestAccounts");
+    if (accounts&&accounts.length>0) {
+      this.ready = true;
+      // TODO qtum to evm and vise versa
+      // this.address = accounts[0]
+    }
+    return accounts;
+  }
+
+  async getAccounts() {
+    let accounts = await this.sendPromise("btc_getAccounts");
+    if (accounts&&accounts.length>0) {
+      this.ready = true;
+    }
+    return accounts;
+  }
+
+  async getPublicKey() {
+    await this.assertConnected();
+    return this.sendPromise("btc_getPublicKey");
+  }
+
+  async getNetwork() {
+    return this.sendPromise("btc_getNetwork");
+  }
+
+  async switchNetwork(network) {
+    return this.sendPromise("btc_switchNetwork", network);
+  }
+
+  async signMessage(message, option) {
+    return this.sendPromise("btc_signMessage", { message, option });
+  }
+
+  async getBalance() {
+    await this.assertConnected();
+    return this.sendPromise("btc_getBalance");
+  }
+  async getInscriptions(cursor, size) {
+    await this.assertConnected();
+    return this.sendPromise("btc_getInscriptions", { cursor, size });
+  }
+  async sendBitcoin(toAddress,satoshis, option) {
+    return this.sendPromise("btc_sendBitcoin",
+      {
+        toAddress,
+        satoshis,
+        option
+      });
+  }
+  async sendInscription(toAddress, inscriptionId, options) {
+    return this.sendPromise("btc_sendInscription", { toAddress, inscriptionId, options});
+  }
+  async pushTx(rawtx) {
+    return this.sendPromise("btc_pushTx", { rawtx });
+  }
+  async signPsbt(psbtHex, options) {
+    return this.sendPromise("btc_signPsbt", { psbtHex, options });
+  }
+  async signPsbts(psbtHexs, options) {
+    return this.sendPromise("btc_signPsbts", { psbtHexs, options });
+  }
+  async pushPsbt(psbtHex) {
+    return this.sendPromise("btc_pushPsbt", psbtHex);
+  }
+  // method: 'inscribeTransfer',
+  async inscribeTransfer(ticker, amount) {
+    console.log("==> inscribeTransfer");
+    return this.sendPromise("btc_inscribeTransfer", { ticker, amount });
+  }
+
+  networkChanged(network) {
+    this.emit("networkChanged", network);
+  }
+
+  accountsChanged(addresses) {
+    this.emit("accountsChanged", addresses);
+  }
+
+
+  sendPromise(method, params) {
+    // id: number;
+    // name: string; // 方法名
+    // object: any; // payload
+    // chain: CoinType;
+    const id = Utils.genId();
+    return new Promise((resolve, reject) => {
+      this.callbacks.set(id, (error, data) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(data);
+        }
+      });
+      this.postMessageBase(method, id, params);
+    });
+  }
+
+  postMessageBase(handler, id, data) {
+    let object = {
+      id: id,
+      name: handler,
+      object: data,
+      chain: this.chain,
+    };
+    if (window.foxwallet.postMessage) {
+      window.foxwallet.postMessage(object);
+    } else {
+      console.error("postMessage is not available");
+    }
+  }
+
+  btc = {
+    requestAccounts: this.requestAccounts.bind(this),
+    getAccounts: this.getAccounts.bind(this),
+    getPublicKey: this.getPublicKey.bind(this),
+    getNetwork: this.getNetwork.bind(this),
+    switchNetwork: this.switchNetwork.bind(this),
+    signMessage: this.signMessage.bind(this),
+    getBalance: this.getBalance.bind(this),
+    getInscriptions: this.getInscriptions.bind(this),
+    sendBitcoin: this.sendBitcoin.bind(this),
+    sendInscription: this.sendInscription.bind(this),
+    pushTx: this.pushTx.bind(this),
+    signPsbt: this.signPsbt.bind(this),
+    signPsbts: this.signPsbts.bind(this),
+    pushPsbt: this.pushPsbt.bind(this),
+    inscribeTransfer: this.inscribeTransfer.bind(this),
+
+    networkChanged: this.networkChanged.bind(this),
+    accountsChanged: this.accountsChanged.bind(this),
+  };
+
+  //====================================
+  //====================================
+  //====================================
+  //====================================
+  //====================================
 
   setAddress(address) {
     const lowerAddress = (address || "").toLowerCase();
