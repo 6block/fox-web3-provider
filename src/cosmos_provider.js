@@ -12,7 +12,7 @@ export class FoxWalletCosmosWeb3Provider extends BaseProvider {
 
     this.chain = "COSMOS";
     this.callbacks = new Map();
-    this.mode = "wallet-connect";
+    this.mode = "extension";
     this.isFoxWallet = true;
     this.version = "1.0.0";
   }
