@@ -61,12 +61,16 @@ class FoxQtumProvider extends BaseProvider {
       await this.sendPromise("btc_requestAccounts");
     }
   }
+
+  async _qtum2evm(qtumAddress) {
+    return await this.sendPromise("_qtum2evm", { qtumAddress });
+  }
   async requestAccounts() {
     let accounts = await this.sendPromise("btc_requestAccounts");
     if (accounts&&accounts.length>0) {
       this.ready = true;
-      // TODO qtum to evm and vise versa
-      // this.address = accounts[0]
+      let evmaddress = await this._qtum2evm(accounts[0]);
+      this.setAddress(evmaddress);
     }
     return accounts;
   }
@@ -93,6 +97,7 @@ class FoxQtumProvider extends BaseProvider {
   }
 
   async signMessage(message, option) {
+    await this.assertConnected();
     return this.sendPromise("btc_signMessage", { message, option });
   }
 
@@ -105,6 +110,7 @@ class FoxQtumProvider extends BaseProvider {
     return this.sendPromise("btc_getInscriptions", { cursor, size });
   }
   async sendBitcoin(toAddress,satoshis, option) {
+    await this.assertConnected();
     return this.sendPromise("btc_sendBitcoin",
       {
         toAddress,
@@ -113,15 +119,18 @@ class FoxQtumProvider extends BaseProvider {
       });
   }
   async sendInscription(toAddress, inscriptionId, options) {
+    await this.assertConnected();
     return this.sendPromise("btc_sendInscription", { toAddress, inscriptionId, options});
   }
   async pushTx(rawtx) {
     return this.sendPromise("btc_pushTx", { rawtx });
   }
   async signPsbt(psbtHex, options) {
+    await this.assertConnected();
     return this.sendPromise("btc_signPsbt", { psbtHex, options });
   }
   async signPsbts(psbtHexs, options) {
+    await this.assertConnected();
     return this.sendPromise("btc_signPsbts", { psbtHexs, options });
   }
   async pushPsbt(psbtHex) {
