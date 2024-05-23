@@ -5,10 +5,15 @@ import Utils from "./utils";
 class PetraError extends Error {
   constructor(message) {
     if (message === "Unauthorized") {
-      super("The requested method and/or account has not been authorized by the user");
+      super(
+        "The requested method and/or account has not been authorized by the user"
+      );
       this.name = "Unauthorized";
       this.code = 4100;
-    } else if (message === "User Cancel input" || message==="User rejected the request") {
+    } else if (
+      message === "User Cancel input" ||
+      message === "User rejected the request"
+    ) {
       super("The user rejected the request.");
       this.name = "User rejection";
       this.code = 4001;
@@ -21,11 +26,11 @@ class PetraError extends Error {
 }
 
 class FoxWalletAptosProvider {
-  constructor() {
+  constructor(config) {
     this.isFoxwallet = true;
     this.chain = "APTOS";
     this.connected = false;
-    this.connectedAccount = null;
+    this.connectedAccount = config[this.chain].connectedAccount;
     this.callbacks = new Map();
     this.networkChangeCallbacks = [];
   }
@@ -86,13 +91,15 @@ class FoxWalletAptosProvider {
         name: "connect",
         chain: this.chain,
       };
-      this.invokeRNMethod(object).then(connectedAccount => {
-        this.connected = true;
-        this.connectedAccount = connectedAccount;
-        resolve(connectedAccount);
-      }).catch(error => {
-        reject(new PetraError(error));
-      });
+      this.invokeRNMethod(object)
+        .then((connectedAccount) => {
+          this.connected = true;
+          this.connectedAccount = connectedAccount;
+          resolve(connectedAccount);
+        })
+        .catch((error) => {
+          reject(new PetraError(error));
+        });
     });
   }
 
@@ -107,7 +114,7 @@ class FoxWalletAptosProvider {
     });
   }
 
-  disconnect(){
+  disconnect() {
     return new Promise((resolve) => {
       this.connected = false;
       this.connectedAccount = null;
@@ -121,7 +128,7 @@ class FoxWalletAptosProvider {
     });
   }
 
-  network(){
+  network() {
     return new Promise((resolve, reject) => {
       const callbackId = Utils.genId();
       let object = {
@@ -129,11 +136,13 @@ class FoxWalletAptosProvider {
         name: "network",
         chain: this.chain,
       };
-      this.invokeRNMethod(object).then((network) => {
-        resolve(network);
-      }).catch(error => {
-        reject(new PetraError(JSON.parse(error)));
-      });
+      this.invokeRNMethod(object)
+        .then((network) => {
+          resolve(network);
+        })
+        .catch((error) => {
+          reject(new PetraError(JSON.parse(error)));
+        });
     });
   }
 
@@ -149,7 +158,6 @@ class FoxWalletAptosProvider {
     }
   }
 
-
   signMessage(message) {
     console.log("signMessage", message);
     return new Promise((resolve, reject) => {
@@ -160,12 +168,14 @@ class FoxWalletAptosProvider {
         object: message,
         chain: this.chain,
       };
-      this.invokeRNMethod(object).then(signMessageResponse => {
-        console.log("signMessageResponse", { signMessageResponse });
-        resolve(signMessageResponse);
-      }).catch(error => {
-        reject(new PetraError(error));
-      });
+      this.invokeRNMethod(object)
+        .then((signMessageResponse) => {
+          console.log("signMessageResponse", { signMessageResponse });
+          resolve(signMessageResponse);
+        })
+        .catch((error) => {
+          reject(new PetraError(error));
+        });
     });
   }
 
@@ -183,13 +193,15 @@ class FoxWalletAptosProvider {
         object: transaction,
         chain: this.chain,
       };
-      this.invokeRNMethod(object).then(signed => {
-        console.log("aptosSignTransaction", "sign", signed);
-        const sig = new Uint8Array(Buffer.from(signed, "base64"));
-        resolve(sig);
-      }).catch(error => {
-        reject(new PetraError(error));
-      });
+      this.invokeRNMethod(object)
+        .then((signed) => {
+          console.log("aptosSignTransaction", "sign", signed);
+          const sig = new Uint8Array(Buffer.from(signed, "base64"));
+          resolve(sig);
+        })
+        .catch((error) => {
+          reject(new PetraError(error));
+        });
     });
   }
 
@@ -206,11 +218,13 @@ class FoxWalletAptosProvider {
         object: transaction,
         chain: this.chain,
       };
-      this.invokeRNMethod(object).then(transaction => {
-        resolve(transaction);
-      }).catch(error => {
-        reject(new PetraError(error));
-      });
+      this.invokeRNMethod(object)
+        .then((transaction) => {
+          resolve(transaction);
+        })
+        .catch((error) => {
+          reject(new PetraError(error));
+        });
     });
   }
 }

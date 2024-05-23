@@ -24,12 +24,6 @@ window.foxwallet = {
   postMessage: null,
 };
 
-window.aptos = new FoxWalletAptosProvider();
-window.petra = window.aptos;
-if (window.foxwallet) {
-  window.foxwallet.aptos = window.aptos;
-}
-
 let foxWalletSolanaProvider = new FoxWalletSolanaProvider();
 initialize(foxWalletSolanaProvider);
 
@@ -43,9 +37,6 @@ window.suiWallet = new SuiProvider();
 registerWallet(window.suiWallet);
 
 window.foxwallet.suiWallet = window.suiWallet;
-
-window.unisat = new BTCProvider();
-window.foxwallet.bitcoin = window.unisat;
 
 window.nostr = new NOSTRProvider();
 window.foxwallet.nostr = window.nostr;
