@@ -10,7 +10,7 @@ export const NETWORK_TYPES = {
 
 export class BTCProvider extends BaseProvider {
   constructor(config) {
-    super();
+    super(config);
     this.isFoxWallet = true;
     this.chain = "BTC";
     this.callbacks = new Map();
@@ -22,23 +22,42 @@ export class BTCProvider extends BaseProvider {
     const publicKey = config[this.chain].publicKey;
     const network = config[this.chain].network;
     console.log("===> BTCProvider config: ", config[this.chain]);
-    if (address && publicKey && network) {
+    if (address && publicKey) {
       this.address = address;
       this.publicKey = publicKey;
-      this.network = network;
       this.isConnected = true;
     } else {
       this.address = null;
       this.publicKey = null;
-      this.network = null;
+
       this.isConnected = false;
     }
+    this.network = network;
   }
 
   assertConnected() {
     if (!this.isConnected) {
       throw new ProviderRpcError(ErrorMap.Unauthorized);
     }
+  }
+
+  async connect() {
+    if (this.address && this.publicKey) {
+      return {
+        address: this.address,
+        publicKey: this.publicKey,
+      };
+    }
+    let { address, publicKey } = await this.send("requestAccounts");
+    if (address && publicKey) {
+      this.address = address;
+      this.publicKey = publicKey;
+      this.isConnected = true;
+    }
+    return {
+      address: address,
+      publicKey: publicKey,
+    };
   }
 
   async requestAccounts() {
@@ -134,6 +153,10 @@ export class BTCProvider extends BaseProvider {
 
   accountsChanged(addresses) {
     this.emit("accountsChanged", addresses);
+  }
+
+  accountChanged(addressInfo) {
+    this.emit("accountChanged", addressInfo);
   }
 
   send(method, params) {
