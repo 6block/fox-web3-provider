@@ -42,6 +42,3 @@ window.nostr = new NOSTRProvider();
 window.foxwallet.nostr = window.nostr;
 
 window.foxwallet.custom = new CustomProvider();
-
-window.cosmos = new FoxCosmosProvider();
-window.foxwallet.cosmos = window.cosmos;
