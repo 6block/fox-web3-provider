@@ -24,13 +24,17 @@ window.foxwallet = {
   postMessage: null,
 };
 
-let foxWalletSolanaProvider = new FoxWalletSolanaProvider();
-initialize(foxWalletSolanaProvider);
+const initSolWallet = (config) => {
+  let foxWalletSolanaProvider = new FoxWalletSolanaProvider(config);
+  initialize(foxWalletSolanaProvider);
 
-window.solana = foxWalletSolanaProvider;
-if (window.foxwallet) {
-  window.foxwallet.solana = window.solana;
-}
+  window.solana = foxWalletSolanaProvider;
+  if (window.foxwallet) {
+    window.foxwallet.solana = window.solana;
+  }
+};
+
+window.initSolWallet = initSolWallet;
 
 const initSuiWallet = (config) => {
   if (window.suiWallet || window.foxwallet.suiWallet) {
