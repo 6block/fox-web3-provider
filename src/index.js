@@ -32,11 +32,15 @@ if (window.foxwallet) {
   window.foxwallet.solana = window.solana;
 }
 
-window.suiWallet = new SuiProvider();
-
-registerWallet(window.suiWallet);
-
-window.foxwallet.suiWallet = window.suiWallet;
+const initSuiWallet = (config) => {
+  if (window.suiWallet || window.foxwallet.suiWallet) {
+    return;
+  }
+  window.suiWallet = new SuiProvider(config);
+  registerWallet(window.suiWallet);
+  window.foxwallet.suiWallet = window.suiWallet;
+};
+window.initSuiWallet = initSuiWallet;
 
 window.nostr = new NOSTRProvider();
 window.foxwallet.nostr = window.nostr;
