@@ -20,6 +20,7 @@ window.foxwallet = {
   AptosProvider: FoxWalletAptosProvider,
   AleoProvider: FoxAleoProvider,
   QtumProvider: FoxQtumProvider,
+  NostrProvider: NOSTRProvider,
   CosmosProvider: FoxCosmosProvider,
   postMessage: null,
 };
@@ -45,8 +46,5 @@ const initSuiWallet = (config) => {
   window.foxwallet.suiWallet = window.suiWallet;
 };
 window.initSuiWallet = initSuiWallet;
-
-window.nostr = new NOSTRProvider();
-window.foxwallet.nostr = window.nostr;
 
 window.foxwallet.custom = new CustomProvider();
