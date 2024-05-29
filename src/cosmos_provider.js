@@ -15,28 +15,59 @@ export class FoxWalletCosmosWeb3Provider extends BaseProvider {
     this.mode = "extension";
     this.isFoxWallet = true;
     this.version = "1.0.0";
+    this.setConfig(config);
+  }
+
+  setConfig(config) {
+    const { availableChainIds, accounts } = config[this.chain];
+    this.availableChainIds = availableChainIds || [];
+    const formatedAccount = { ...accounts };
+    Object.keys(accounts).map((chainId) => {
+      const account = accounts[chainId];
+      if (account) {
+        formatedAccount[chainId] = {
+          ...account,
+          pubKey: Buffer.from(account.pubKey, "hex"),
+        };
+      }
+    });
+    this.accounts = formatedAccount;
   }
 
   enable(chainIds) {
-    console.log(`==> enabled for ${chainIds}`);
+    const nonExistChainId = chainIds.find(
+      (chainId) => !this.availableChainIds.includes(chainId)
+    );
+    if (nonExistChainId) {
+      throw new Error("There is no chain info for " + nonExistChainId);
+    }
+    return;
   }
 
   experimentalSuggestChain(chainInfo) {
-    console.log("==> experimentalSuggestChain isn't implemented");
+    console.log("==> experimentalSuggestChain isn't implemented ", chainInfo);
   }
 
-  getKey(chainId) {
-    return this._request("requestAccounts", { chainId: chainId }).then(
-      (response) => {
-        return {
-          algo: "secp256k1",
-          address: response.address,
-          bech32Address: response.address,
-          pubKey: Buffer.from(response.pubKey, "hex"),
-          username: response.name,
-        };
-      }
-    );
+  async getKey(chainId) {
+    if (this.accounts[chainId] && this.accounts[chainId].address) {
+      return this.accounts[chainId];
+    }
+    const account = await this._request("requestAccounts", {
+      chainId: chainId,
+    });
+    if (account) {
+      const formatAccount = {
+        // algo: "secp256k1",
+        // address: response.address,
+        // bech32Address: response.address,
+        // pubKey: Buffer.from(response.pubKey, "hex"),
+        // username: response.name,
+        ...account,
+        pubKey: Buffer.from(account.pubKey, "hex"),
+      };
+      this.accounts[chainId] = formatAccount;
+      return formatAccount;
+    }
   }
 
   getOfflineSigner(chainId) {

@@ -4,50 +4,74 @@ import { decode as bs58Decode } from "bs58";
 import Utils from "./utils";
 import { Buffer } from "buffer";
 
-function isVersionedTransaction(
-  transaction
-) {
+function isVersionedTransaction(transaction) {
   return "version" in transaction;
 }
 
 class FoxWalletSolanaProvider extends EventEmitter {
-  constructor() {
-    super();
+  constructor(config) {
+    super(config);
     this.isFoxWallet = true;
     this.chain = "SOL";
     this.callbacks = new Map();
-    this.publicKey = null;
-    this.isConnected = false;
 
     this.isCloverWallet = true;
     this.isPhantom = true;
     this.isGlow = false;
+    this.setConfig(config);
+  }
+
+  setConfig(config) {
+    const solConfig = config[this.chain];
+    this.publicKey = solConfig.address
+      ? {
+          toBytes: () => {
+            return bs58Decode(solConfig.address);
+          },
+          toBase58: () => {
+            return solConfig.address;
+          },
+          toJSON: () => {
+            return solConfig.address;
+          },
+          toString: () => {
+            return solConfig.address;
+          },
+        }
+      : null;
+    this.isConnected = !!this.publicKey;
   }
 
   connect(hiddenOption) {
+    if (this.publicKey) {
+      this.emit("connect", this.publicKey);
+      return;
+    }
     return new Promise((resolve, reject) => {
-      this.getAccount(hiddenOption).then((account) => {
-        this.isConnected = true;
-        this.publicKey = {
-          toBytes: () => {
-            return bs58Decode(account);
-          },
-          toBase58: () => {
-            return account;
-          },
-          toJSON: () => {
-            return account;
-          },
-          toString: () => {
-            return account;
-          },
-        };
-        this.emit("connect");
-        resolve();
-      }).catch((err) => {
-        this.emit("disconnect");
-        reject(err);
-      });
+      this.getAccount(hiddenOption)
+        .then((account) => {
+          this.isConnected = true;
+          this.publicKey = {
+            toBytes: () => {
+              return bs58Decode(account);
+            },
+            toBase58: () => {
+              return account;
+            },
+            toJSON: () => {
+              return account;
+            },
+            toString: () => {
+              return account;
+            },
+          };
+          this.emit("connect");
+          resolve();
+        })
+        .catch((err) => {
+          this.emit("disconnect");
+          reject(err);
+        });
     });
   }
 
@@ -60,8 +84,7 @@ class FoxWalletSolanaProvider extends EventEmitter {
     });
   }
 
-  _handleDisconnect() {
-  }
+  _handleDisconnect() {}
 
   invokeRNMethod(payload) {
     return new Promise((resolve1, reject1) => {
@@ -113,11 +136,13 @@ class FoxWalletSolanaProvider extends EventEmitter {
         object: JSON.stringify(hiddenOption),
         chain: this.chain,
       };
-      this.invokeRNMethod(object).then(account => {
-        resolve(JSON.parse(account));
-      }).catch(error => {
-        reject(new Error(JSON.parse(error)));
-      });
+      this.invokeRNMethod(object)
+        .then((account) => {
+          resolve(JSON.parse(account));
+        })
+        .catch((error) => {
+          reject(new Error(JSON.parse(error)));
+        });
     });
   }
 
@@ -130,13 +155,15 @@ class FoxWalletSolanaProvider extends EventEmitter {
         object: message ? Buffer.from(message).toString("base64") : "",
         chain: this.chain,
       };
-      this.invokeRNMethod(object).then(message => {
-        const originalParam = JSON.parse(message);
-        const sig = new Uint8Array(Buffer.from(originalParam, "base64"));
-        resolve({ signature: sig });
-      }).catch(error => {
-        reject(new Error(JSON.parse(error)));
-      });
+      this.invokeRNMethod(object)
+        .then((message) => {
+          const originalParam = JSON.parse(message);
+          const sig = new Uint8Array(Buffer.from(originalParam, "base64"));
+          resolve({ signature: sig });
+        })
+        .catch((error) => {
+          reject(new Error(JSON.parse(error)));
+        });
     });
   }
 
@@ -153,7 +180,7 @@ class FoxWalletSolanaProvider extends EventEmitter {
       } else {
         tBuffer = transaction.serialize({
           requireAllSignatures: false,
-          verifySignatures: false
+          verifySignatures: false,
         });
       }
       let object = {
@@ -162,25 +189,29 @@ class FoxWalletSolanaProvider extends EventEmitter {
         object: Buffer.from(tBuffer).toString("base64"),
         chain: this.chain,
       };
-      this.invokeRNMethod(object).then(output => {
-        try {
-          let buffer = Buffer.from(JSON.parse(output), "base64");
-          let signed;
-          if (transaction.constructor.deserialize) {
-            // VersionedTransaction
-            let signed = transaction.constructor.deserialize(new Uint8Array(buffer));
-            resolve(signed);
-          } else {
-            signed = transaction.constructor.from(new Uint8Array(buffer));
-            Utils.mapSignatureBack(signed, transaction);
-            resolve(transaction);
+      this.invokeRNMethod(object)
+        .then((output) => {
+          try {
+            let buffer = Buffer.from(JSON.parse(output), "base64");
+            let signed;
+            if (transaction.constructor.deserialize) {
+              // VersionedTransaction
+              let signed = transaction.constructor.deserialize(
+                new Uint8Array(buffer)
+              );
+              resolve(signed);
+            } else {
+              signed = transaction.constructor.from(new Uint8Array(buffer));
+              Utils.mapSignatureBack(signed, transaction);
+              resolve(transaction);
+            }
+          } catch (e) {
+            reject(new Error("transaction is not valid"));
           }
-        } catch (e) {
-          reject(new Error("transaction is not valid"));
-        }
-      }).catch(error => {
-        reject(new Error(JSON.parse(error)));
-      });
+        })
+        .catch((error) => {
+          reject(new Error(JSON.parse(error)));
+        });
     });
   }
 
@@ -197,21 +228,26 @@ class FoxWalletSolanaProvider extends EventEmitter {
       } else {
         tBuffer = transaction.serialize({
           requireAllSignatures: false,
-          verifySignatures: false
+          verifySignatures: false,
         });
       }
       let object = {
         id: callbackId,
         name: "signAndSendTransaction",
-        object: {transaction: Buffer.from(tBuffer).toString("base64"), options},
+        object: {
+          transaction: Buffer.from(tBuffer).toString("base64"),
+          options,
+        },
         chain: this.chain,
       };
-      this.invokeRNMethod(object).then(message => {
-        const sig = JSON.parse(message);
-        resolve({ signature: sig });
-      }).catch(error => {
-        reject(new Error(JSON.parse(error)));
-      });
+      this.invokeRNMethod(object)
+        .then((message) => {
+          const sig = JSON.parse(message);
+          resolve({ signature: sig });
+        })
+        .catch((error) => {
+          reject(new Error(JSON.parse(error)));
+        });
     });
   }
 
@@ -221,14 +257,16 @@ class FoxWalletSolanaProvider extends EventEmitter {
         reject(new Error("no transaction to sign"));
       }
       const callbackId = Utils.genId();
-      const serialized = transactions.map(transaction => {
+      const serialized = transactions.map((transaction) => {
         if (isVersionedTransaction(transaction)) {
           return Buffer.from(transaction.serialize()).toString("base64");
         }
-        return transaction.serialize({
-          requireAllSignatures: false,
-          verifySignatures: false
-        }).toString("base64");
+        return transaction
+          .serialize({
+            requireAllSignatures: false,
+            verifySignatures: false,
+          })
+          .toString("base64");
       });
       let object = {
         id: callbackId,
@@ -236,22 +274,30 @@ class FoxWalletSolanaProvider extends EventEmitter {
         object: serialized,
         chain: this.chain,
       };
-      this.invokeRNMethod(object).then(output => {
-        const outputObj = JSON.parse(output);
-        for (let i = 0; i < transactions.length; i++) {
-          let signedTransaction;
-          if (transactions[i].constructor.deserialize) {
-            signedTransaction = transactions[i].constructor.deserialize(Buffer.from(outputObj[i], "base64"));
-          } else {
-            signedTransaction = transactions[i].constructor.from(Buffer.from(outputObj[i], "base64"));
-            Utils.mapSignatureBack(signedTransaction, transactions[i]);
+      this.invokeRNMethod(object)
+        .then((output) => {
+          const outputObj = JSON.parse(output);
+          for (let i = 0; i < transactions.length; i++) {
+            let signedTransaction;
+            if (transactions[i].constructor.deserialize) {
+              signedTransaction = transactions[i].constructor.deserialize(
+                Buffer.from(outputObj[i], "base64")
+              );
+            } else {
+              signedTransaction = transactions[i].constructor.from(
+                Buffer.from(outputObj[i], "base64")
+              );
+              Utils.mapSignatureBack(signedTransaction, transactions[i]);
+            }
           }
-        }
-        console.log("window.foxwallet[callbackId]", callbackId, {transactions});
-        resolve(transactions);
-      }).catch(error => {
-        reject(new Error(JSON.parse(error)));
-      });
+          console.log("window.foxwallet[callbackId]", callbackId, {
+            transactions,
+          });
+          resolve(transactions);
+        })
+        .catch((error) => {
+          reject(new Error(JSON.parse(error)));
+        });
     });
   }
 }

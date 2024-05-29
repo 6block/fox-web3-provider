@@ -6,23 +6,23 @@ import Utils from "./utils";
 class FoxAleoProvider extends BaseProvider {
   constructor(config) {
     super(config);
-    this.setConfig(config);
 
     this.isFoxWallet = true;
     this.chain = "ALEO";
     this.callbacks = new Map();
     this.wrapResults = new Map();
-
-    this.emitConnect(config.aleo.address);
+    this.setConfig(config);
   }
 
   setAddress(address) {
     this.publicKey = address;
     this.ready = !!address;
+    this.emitConnect(this.publicKey);
   }
 
   setConfig(config) {
-    this.setAddress(config.aleo.address);
+    const aleoConfig = config[this.chain];
+    this.setAddress(aleoConfig.address);
     this.isDebug = !!config.isDebug;
   }
 

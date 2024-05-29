@@ -1,13 +1,19 @@
 import BaseProvider from "./base_provider";
 import Utils from "./utils";
 
-export class NOSTRProvider extends BaseProvider  {
-  constructor() {
-    super();
+export class NOSTRProvider extends BaseProvider {
+  constructor(config) {
+    super(config);
     this.isFoxWallet = true;
     this.chain = "NOSTR";
     this.callbacks = new Map();
-    this.isConnected = false;
+    this.setConfig(config);
+  }
+
+  setConfig(config) {
+    const nostrConfig = config[this.chain];
+    this.publicKey = nostrConfig.publicKey;
+    this.isConnected = !!this.publicKey;
   }
 
   nip04 = {
@@ -20,6 +26,9 @@ export class NOSTRProvider extends BaseProvider  {
   };
 
   async getPublicKey() {
+    if (this.publicKey) {
+      return this.publicKey;
+    }
     let account = await this.send("getPublicKey");
     if (account) {
       this.isConnected = true;
@@ -63,6 +72,5 @@ export class NOSTRProvider extends BaseProvider  {
       });
       this.postMessage(method, id, params);
     });
-
   }
 }

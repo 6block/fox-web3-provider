@@ -25,12 +25,13 @@
     "@solana/web3.js": "^1.5.0",
     "@wallet-standard/base": "^1.0.1",
     "@wallet-standard/core": "^1.0.3",
+    "bitcoinjs-lib": "^6.1.5",
     "bs58": "^4.0.1",
     "buffer": "^5.6.0",
     "eventemitter3": "^4.0.7",
     "events": "^3.2.0",
-    "isutf8": "^3.1.1",
-    "foxwallet-standard-wallet": "git+https://github.com/foxwallet/solana-wallet-standard.git#a76f078"
+    "foxwallet-standard-wallet": "git+https://github.com/foxwallet/solana-wallet-standard.git#a76f078",
+    "isutf8": "^3.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.16.12",

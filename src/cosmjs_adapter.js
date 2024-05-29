@@ -1,12 +1,12 @@
 "use strict";
 
 class CosmJSOfflineSigner {
-  constructor(chainId, foxwallet) {
+  constructor(chainId, cosmosProvider) {
     this.chainId = chainId;
-    this.foxwallet = foxwallet;
+    this.cosmosProvider = cosmosProvider;
   }
   async getAccounts() {
-    const key = await this.foxwallet.getKey(this.chainId);
+    const key = await this.cosmosProvider.getKey(this.chainId);
     return [
       {
         address: key.bech32Address,
@@ -20,11 +20,11 @@ class CosmJSOfflineSigner {
     if (this.chainId !== signDoc.chain_id) {
       throw new Error("Unmatched chain id with the offline signer");
     }
-    const key = await this.foxwallet.getKey(signDoc.chain_id);
+    const key = await this.cosmosProvider.getKey(signDoc.chain_id);
     if (key.bech32Address !== signerAddress) {
       throw new Error("Unknown signer address");
     }
-    return await this.foxwallet.signAmino(
+    return await this.cosmosProvider.signAmino(
       this.chainId,
       signerAddress,
       signDoc,
@@ -40,11 +40,11 @@ class CosmJSOfflineSigner {
     if (this.chainId !== signDoc.chainId) {
       throw new Error("Unmatched chain id with the offline signer");
     }
-    const key = await this.foxwallet.getKey(signDoc.chainId);
+    const key = await this.cosmosProvider.getKey(signDoc.chainId);
     if (key.bech32Address !== signerAddress) {
       throw new Error("Unknown signer address");
     }
-    return await this.foxwallet.signDirect(
+    return await this.cosmosProvider.signDirect(
       this.chainId,
       signerAddress,
       signDoc

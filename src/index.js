@@ -2,7 +2,6 @@
 
 import FoxWeb3Provider from "./ethereum_provider";
 import FoxWalletSolanaProvider from "./solana_provider";
-// import TrustCosmosWeb3Provider from "./cosmos_provider";
 import FoxWalletAptosProvider from "./aptos_provider";
 import { registerWallet } from "@wallet-standard/core";
 import { SuiProvider } from "./sui_provider";
@@ -16,41 +15,36 @@ import FoxCosmosProvider from "./cosmos_provider";
 
 window.foxwallet = {
   Provider: FoxWeb3Provider,
+  BitcoinProvider: BTCProvider,
   SolanaProvider: FoxWalletSolanaProvider,
   AptosProvider: FoxWalletAptosProvider,
   AleoProvider: FoxAleoProvider,
   QtumProvider: FoxQtumProvider,
+  NostrProvider: NOSTRProvider,
   CosmosProvider: FoxCosmosProvider,
   postMessage: null,
 };
 
-window.aptos = new FoxWalletAptosProvider();
-window.petra = window.aptos;
-if (window.foxwallet) {
-  window.foxwallet.aptos = window.aptos;
-}
+const initSolWallet = (config) => {
+  let foxWalletSolanaProvider = new FoxWalletSolanaProvider(config);
+  initialize(foxWalletSolanaProvider);
 
-let foxWalletSolanaProvider = new FoxWalletSolanaProvider();
-initialize(foxWalletSolanaProvider);
+  window.solana = foxWalletSolanaProvider;
+  if (window.foxwallet) {
+    window.foxwallet.solana = window.solana;
+  }
+};
 
-window.solana = foxWalletSolanaProvider;
-if (window.foxwallet) {
-  window.foxwallet.solana = window.solana;
-}
+window.initSolWallet = initSolWallet;
 
-window.suiWallet = new SuiProvider();
-
-registerWallet(window.suiWallet);
-
-window.foxwallet.suiWallet = window.suiWallet;
-
-window.unisat = new BTCProvider();
-window.foxwallet.bitcoin = window.unisat;
-
-window.nostr = new NOSTRProvider();
-window.foxwallet.nostr = window.nostr;
+const initSuiWallet = (config) => {
+  if (window.suiWallet || window.foxwallet.suiWallet) {
+    return;
+  }
+  window.suiWallet = new SuiProvider(config);
+  registerWallet(window.suiWallet);
+  window.foxwallet.suiWallet = window.suiWallet;
+};
+window.initSuiWallet = initSuiWallet;
 
 window.foxwallet.custom = new CustomProvider();
-
-window.cosmos = new FoxCosmosProvider();
-window.foxwallet.cosmos = window.cosmos;

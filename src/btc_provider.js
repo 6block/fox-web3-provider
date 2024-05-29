@@ -1,49 +1,89 @@
 import BaseProvider from "./base_provider";
+import { ErrorMap } from "./constants";
+import ProviderRpcError from "./error";
 import Utils from "./utils";
 
 export const NETWORK_TYPES = {
-  livenet :"livenet",
-  testnet :"testnet",
+  livenet: "livenet",
+  testnet: "testnet",
 };
 
-export class BTCProvider extends BaseProvider  {
-  constructor() {
-    super();
+export class BTCProvider extends BaseProvider {
+  constructor(config) {
+    super(config);
     this.isFoxWallet = true;
     this.chain = "BTC";
     this.callbacks = new Map();
-    this.isConnected = false;
+    this.setConfig(config);
   }
 
-  async assertConnected() {
-    await this.getAccounts();
-    if (!this.isConnected) {
-      await this.send("requestAccounts");
+  setConfig(config) {
+    const address = config[this.chain].address;
+    const publicKey = config[this.chain].publicKey;
+    const network = config[this.chain].network;
+    if (address && publicKey) {
+      this.address = address;
+      this.publicKey = publicKey;
+      this.isConnected = true;
+    } else {
+      this.address = null;
+      this.publicKey = null;
+
+      this.isConnected = false;
     }
+    this.network = network;
+  }
+
+  assertConnected() {
+    if (!this.isConnected) {
+      throw new ProviderRpcError(ErrorMap.Unauthorized);
+    }
+  }
+
+  async connect() {
+    if (this.address && this.publicKey) {
+      return {
+        address: this.address,
+        publicKey: this.publicKey,
+      };
+    }
+    let { address, publicKey } = await this.send("requestAccounts");
+    if (address && publicKey) {
+      this.address = address;
+      this.publicKey = publicKey;
+      this.isConnected = true;
+    }
+    return {
+      address: address,
+      publicKey: publicKey,
+    };
   }
 
   async requestAccounts() {
-    let accounts = await this.send("requestAccounts");
-    if (accounts&&accounts.length>0) {
+    if (this.address) {
+      return [this.address];
+    }
+    let { address, publicKey } = await this.send("requestAccounts");
+    if (address && publicKey) {
+      this.address = address;
+      this.publicKey = publicKey;
       this.isConnected = true;
     }
-    return accounts;
+    return [address];
   }
 
   async getAccounts() {
-    let accounts = await this.send("getAccounts");
-    if (accounts&&accounts.length>0) {
-      this.isConnected = true;
-    }
-    return accounts;
+    return this.address ? [this.address] : [];
   }
 
   async getPublicKey() {
-    await this.assertConnected();
-    return this.send("getPublicKey");
+    return this.publicKey || "";
   }
 
   async getNetwork() {
+    if (this.network) {
+      return this.network;
+    }
     return this.send("getNetwork");
   }
 
@@ -52,42 +92,57 @@ export class BTCProvider extends BaseProvider  {
   }
 
   async signMessage(message, option) {
+    this.assertConnected();
     return this.send("signMessage", { message, option });
   }
+
   async getBalance() {
-    await this.assertConnected();
+    this.assertConnected();
     return this.send("getBalance");
   }
+
   async getInscriptions(cursor, size) {
-    await this.assertConnected();
+    this.assertConnected();
     return this.send("getInscriptions", { cursor, size });
   }
-  async sendBitcoin(toAddress,satoshis, option) {
-    return this.send("sendBitcoin",
-      {
-        toAddress,
-        satoshis,
-        option
-      });
+
+  async sendBitcoin(toAddress, satoshis, option) {
+    this.assertConnected();
+    return this.send("sendBitcoin", {
+      toAddress,
+      satoshis,
+      option,
+    });
   }
+
   async sendInscription(toAddress, inscriptionId, options) {
-    return this.send("sendInscription", { toAddress, inscriptionId, options});
+    this.assertConnected();
+    return this.send("sendInscription", { toAddress, inscriptionId, options });
   }
+
   async pushTx(rawtx) {
+    this.assertConnected();
     return this.send("pushTx", { rawtx });
   }
+
   async signPsbt(psbtHex, options) {
+    this.assertConnected();
     return this.send("signPsbt", { psbtHex, options });
   }
+
   async signPsbts(psbtHexs, options) {
+    this.assertConnected();
     return this.send("signPsbts", { psbtHexs, options });
   }
+
   async pushPsbt(psbtHex) {
+    this.assertConnected();
     return this.send("pushPsbt", psbtHex);
   }
+
   // method: 'inscribeTransfer',
   async inscribeTransfer(ticker, amount) {
-    console.log("==> inscribeTransfer");
+    this.assertConnected();
     return this.send("inscribeTransfer", { ticker, amount });
   }
 
@@ -97,6 +152,10 @@ export class BTCProvider extends BaseProvider  {
 
   accountsChanged(addresses) {
     this.emit("accountsChanged", addresses);
+  }
+
+  accountChanged(addressInfo) {
+    this.emit("accountChanged", addressInfo);
   }
 
   send(method, params) {
@@ -115,6 +174,5 @@ export class BTCProvider extends BaseProvider  {
       });
       this.postMessage(method, id, params);
     });
-
   }
 }

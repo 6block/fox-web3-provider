@@ -11,14 +11,13 @@ import BaseProvider from "./base_provider";
 class FoxWeb3Provider extends BaseProvider {
   constructor(config) {
     super(config);
-    this.setConfig(config);
 
     this.isFoxWallet = true;
     this.chain = "ETH";
     this.idMapping = new IdMapping();
     this.callbacks = new Map();
     this.wrapResults = new Map();
-    this.isMetaMask = !!config.ethereum.isMetaMask;
+    this.setConfig(config);
 
     this.emitConnect(this.chainId);
   }
@@ -41,11 +40,11 @@ class FoxWeb3Provider extends BaseProvider {
   }
 
   setConfig(config) {
-    this.setAddress(config.ethereum.address);
+    this.setAddress(config[this.chain].address);
 
-    this.networkVersion = "" + config.ethereum.chainId;
-    this.chainId = "0x" + (config.ethereum.chainId || 1).toString(16);
-    this.rpc = new RPCServer(config.ethereum.rpcUrl);
+    this.networkVersion = "" + config[this.chain].chainId;
+    this.chainId = "0x" + (config[this.chain].chainId || 1).toString(16);
+    this.rpc = new RPCServer(config[this.chain].rpcUrl);
     this.isDebug = !!config.isDebug;
   }
 
