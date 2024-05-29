@@ -29,7 +29,6 @@ class FoxQtumProvider extends BaseProvider {
   }
 
   setConfig(config) {
-    console.log("===> FoxQtumProvider config: ", config);
     const qtumConfig = config[this.chain];
     this.setBtcConfig(qtumConfig.BTC);
     this.setEthConfig(qtumConfig.ETH);

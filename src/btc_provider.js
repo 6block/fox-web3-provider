@@ -21,7 +21,6 @@ export class BTCProvider extends BaseProvider {
     const address = config[this.chain].address;
     const publicKey = config[this.chain].publicKey;
     const network = config[this.chain].network;
-    console.log("===> BTCProvider config: ", config[this.chain]);
     if (address && publicKey) {
       this.address = address;
       this.publicKey = publicKey;
