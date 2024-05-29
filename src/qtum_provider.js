@@ -7,25 +7,72 @@ import IdMapping from "./id_mapping";
 import isUtf8 from "isutf8";
 import { TypedDataUtils, SignTypedDataVersion } from "@metamask/eth-sig-util";
 import BaseProvider from "./base_provider";
+import { ErrorMap } from "./constants";
 
 export const NETWORK_TYPES = {
-  livenet :"livenet",
-  testnet :"testnet",
+  livenet: "livenet",
+  testnet: "testnet",
 };
 
 class FoxQtumProvider extends BaseProvider {
   constructor(config) {
-    super();
-    this.setConfig(config);
+    super(config);
 
     this.isFoxWallet = true;
     this.chain = "QTUM";
     this.idMapping = new IdMapping();
     this.callbacks = new Map();
     this.wrapResults = new Map();
-    this.isMetaMask = !!config.qtum.isMetaMask;
+    this.setConfig(config);
 
     this.emitConnect(this.chainId);
+  }
+
+  setConfig(config) {
+    console.log("===> FoxQtumProvider config: ", config);
+    const qtumConfig = config[this.chain];
+    this.setBtcConfig(qtumConfig.BTC);
+    this.setEthConfig(qtumConfig.ETH);
+    this.isDebug = !!config.isDebug;
+  }
+
+  setBtcConfig(config) {
+    const { address, publicKey, network } = config;
+    if (address && publicKey) {
+      this.btcAddress = address;
+      this.btcPublicKey = publicKey;
+      this.btcReady = true;
+    } else {
+      this.btcAddress = null;
+      this.btcPublicKey = null;
+      this.btcReady = false;
+    }
+    this.network = network;
+  }
+
+  setEthConfig(config) {
+    const { address, chainId, rpcUrl } = config;
+    this.setEthAddress(address);
+    this.networkVersion = "" + chainId;
+    this.chainId = "0x" + (chainId || 81).toString(16);
+    this.rpc = new RPCServer(rpcUrl);
+  }
+
+  setEthAddress(address) {
+    const lowerAddress = (address || "").toLowerCase();
+    this.ethAddress = lowerAddress;
+    this.ethReady = true;
+    try {
+      for (var i = 0; i < window.frames.length; i++) {
+        const frame = window.frames[i];
+        if (frame.qtum && frame.qtum.isFoxWallet) {
+          frame.qtum.ethAddress = lowerAddress;
+          frame.qtum.ethReady = !!address;
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   // eth = {
@@ -56,39 +103,49 @@ class FoxQtumProvider extends BaseProvider {
   //====================================
   //====================================
   async assertConnected() {
-    await this.getAccounts();
-    if (!this.ready) {
-      await this.sendPromise("btc_requestAccounts");
+    if (!this.btcReady) {
+      throw new ProviderRpcError(ErrorMap.Unauthorized);
     }
+    // await this.getAccounts();
+    // if (!this.btcReady) {
+    //   await this.sendPromise("btc_requestAccounts");
+    // }
   }
 
-  async _qtum2evm(qtumAddress) {
-    return await this.sendPromise("_qtum2evm", { qtumAddress });
-  }
   async requestAccounts() {
-    let accounts = await this.sendPromise("btc_requestAccounts");
-    if (accounts&&accounts.length>0) {
-      this.ready = true;
-      let evmaddress = await this._qtum2evm(accounts[0]);
+    if (this.btcAddress) {
+      return [this.btcAddress];
+    }
+    let { address, publicKey } = await this.sendPromise("btc_requestAccounts");
+    if ((address, publicKey)) {
+      this.btcAddress = address;
+      this.btcPublicKey = publicKey;
+      this.btcReady = true;
+      let evmaddress = Utils.getEvmAddress(address);
       this.setAddress(evmaddress);
     }
-    return accounts;
+    return address ? [address] : [];
   }
 
   async getAccounts() {
-    let accounts = await this.sendPromise("btc_getAccounts");
-    if (accounts&&accounts.length>0) {
-      this.ready = true;
-    }
-    return accounts;
+    return this.btcAddress ? [this.btcAddress] : [];
+    // let accounts = await this.sendPromise("btc_getAccounts");
+    // if (accounts && accounts.length > 0) {
+    //   this.ready = true;
+    // }
+    // return accounts;
   }
 
   async getPublicKey() {
-    await this.assertConnected();
-    return this.sendPromise("btc_getPublicKey");
+    return this.btcPublicKey || "";
+    // await this.assertConnected();
+    // return this.sendPromise("btc_getPublicKey");
   }
 
   async getNetwork() {
+    if (this.network) {
+      return this.network;
+    }
     return this.sendPromise("btc_getNetwork");
   }
 
@@ -109,18 +166,21 @@ class FoxQtumProvider extends BaseProvider {
     await this.assertConnected();
     return this.sendPromise("btc_getInscriptions", { cursor, size });
   }
-  async sendBitcoin(toAddress,satoshis, option) {
+  async sendBitcoin(toAddress, satoshis, option) {
     await this.assertConnected();
-    return this.sendPromise("btc_sendBitcoin",
-      {
-        toAddress,
-        satoshis,
-        option
-      });
+    return this.sendPromise("btc_sendBitcoin", {
+      toAddress,
+      satoshis,
+      option,
+    });
   }
   async sendInscription(toAddress, inscriptionId, options) {
     await this.assertConnected();
-    return this.sendPromise("btc_sendInscription", { toAddress, inscriptionId, options});
+    return this.sendPromise("btc_sendInscription", {
+      toAddress,
+      inscriptionId,
+      options,
+    });
   }
   async pushTx(rawtx) {
     return this.sendPromise("btc_pushTx", { rawtx });
@@ -150,6 +210,9 @@ class FoxQtumProvider extends BaseProvider {
     this.emit("accountsChanged", addresses);
   }
 
+  accountChanged(addressInfo) {
+    this.emit("accountChanged", addressInfo);
+  }
 
   sendPromise(method, params) {
     // id: number;
@@ -209,32 +272,6 @@ class FoxQtumProvider extends BaseProvider {
   //====================================
   //====================================
   //====================================
-
-  setAddress(address) {
-    const lowerAddress = (address || "").toLowerCase();
-    this.address = lowerAddress;
-    this.ready = true;
-    try {
-      for (var i = 0; i < window.frames.length; i++) {
-        const frame = window.frames[i];
-        if (frame.qtum && frame.qtum.isFoxWallet) {
-          frame.qtum.address = lowerAddress;
-          frame.qtum.ready = !!address;
-        }
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  setConfig(config) {
-    this.setAddress(config.qtum.address);
-
-    this.networkVersion = "" + config.qtum.chainId;
-    this.chainId = "0x" + (config.qtum.chainId || 81).toString(16);
-    this.rpc = new RPCServer(config.qtum.rpcUrl);
-    this.isDebug = !!config.isDebug;
-  }
 
   request(payload) {
     // this points to window in methods like web3.eth.getAccounts()
@@ -362,11 +399,23 @@ class FoxQtumProvider extends BaseProvider {
         case "personal_ecRecover":
           return this.personal_ecRecover(payload, false);
         case "eth_signTypedData_v3":
-          return this.eth_signTypedData(payload, SignTypedDataVersion.V3, false);
+          return this.eth_signTypedData(
+            payload,
+            SignTypedDataVersion.V3,
+            false
+          );
         case "eth_signTypedData_v4":
-          return this.eth_signTypedData(payload, SignTypedDataVersion.V4, false);
+          return this.eth_signTypedData(
+            payload,
+            SignTypedDataVersion.V4,
+            false
+          );
         case "eth_signTypedData":
-          return this.eth_signTypedData(payload, SignTypedDataVersion.V1, false);
+          return this.eth_signTypedData(
+            payload,
+            SignTypedDataVersion.V1,
+            false
+          );
         case "btc_personalSign":
           return this.personal_sign(payload, true);
         case "btc_ecRecover":
@@ -406,16 +455,16 @@ class FoxQtumProvider extends BaseProvider {
           return this.rpc
             .call(payload)
             .then((response) => {
-              if (response.result){
-                if(response.result.blockHash === ""){
+              if (response.result) {
+                if (response.result.blockHash === "") {
                   response.result.blockHash = null;
                 }
 
-                if(response.result.blockNumber === ""){
+                if (response.result.blockNumber === "") {
                   response.result.blockNumber = null;
                 }
 
-                if(response.result.transactionIndex === ""){
+                if (response.result.transactionIndex === "") {
                   response.result.transactionIndex = null;
                 }
               }
@@ -461,11 +510,11 @@ class FoxQtumProvider extends BaseProvider {
   }
 
   eth_accounts() {
-    return this.address ? [this.address] : [];
+    return this.ethAddress ? [this.ethAddress] : [];
   }
 
   eth_coinbase() {
-    return this.address;
+    return this.ethAddress;
   }
 
   net_version() {
@@ -480,7 +529,10 @@ class FoxQtumProvider extends BaseProvider {
     const buffer = Utils.messageToBuffer(payload.params[1]);
     const hex = Utils.bufferToHex(buffer);
     if (isUtf8(buffer)) {
-      this.postMessage("signPersonalMessage", payload.id, { data: hex, btcSign });
+      this.postMessage("signPersonalMessage", payload.id, {
+        data: hex,
+        btcSign,
+      });
     } else {
       this.postMessage("signMessage", payload.id, { data: hex, btcSign });
     }
@@ -500,9 +552,15 @@ class FoxQtumProvider extends BaseProvider {
     if (buffer.length === 0) {
       // hex it
       const hex = Utils.bufferToHex(message);
-      this.postMessage("signPersonalMessage", payload.id, { data: hex, btcSign });
+      this.postMessage("signPersonalMessage", payload.id, {
+        data: hex,
+        btcSign,
+      });
     } else {
-      this.postMessage("signPersonalMessage", payload.id, { data: message, btcSign });
+      this.postMessage("signPersonalMessage", payload.id, {
+        data: message,
+        btcSign,
+      });
     }
   }
 
@@ -527,7 +585,7 @@ class FoxQtumProvider extends BaseProvider {
     ) {
       data = payload.params[1];
       address = payload.params[0];
-    }else {
+    } else {
       data = payload.params[0];
       address = payload.params[1];
     }
@@ -609,7 +667,7 @@ class FoxQtumProvider extends BaseProvider {
   postMessage(handler, id, data) {
     console.log("====> hander: ", handler);
     if (
-      this.ready ||
+      this.ethReady ||
       handler === "requestAccounts" ||
       handler === "switchEthereumChain"
     ) {

@@ -1,6 +1,7 @@
 "use strict";
 
 import { Buffer } from "buffer";
+import { address as btcAddress } from "bitcoinjs-lib";
 
 class Utils {
   static genId() {
@@ -74,6 +75,19 @@ class Utils {
         return ("0" + (byte & 0xff).toString(16)).slice(-2);
       })
       .join("");
+  }
+
+  static addHexPrefix(str) {
+    if (str.startsWith("0x")) {
+      return str;
+    }
+    return `0x${str}`;
+  }
+
+  static getEvmAddress(address) {
+    return this.addHexPrefix(
+      btcAddress.fromBase58Check(address).hash.toString("hex")
+    );
   }
 }
 
