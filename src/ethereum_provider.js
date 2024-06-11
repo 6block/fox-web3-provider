@@ -40,12 +40,14 @@ class FoxWeb3Provider extends BaseProvider {
   }
 
   setConfig(config) {
-    this.setAddress(config[this.chain].address);
+    const ethConfig = config[this.chain];
+    this.setAddress(ethConfig.address);
 
-    this.networkVersion = "" + config[this.chain].chainId;
-    this.chainId = "0x" + (config[this.chain].chainId || 1).toString(16);
-    this.rpc = new RPCServer(config[this.chain].rpcUrl);
+    this.networkVersion = "" + ethConfig.chainId;
+    this.chainId = "0x" + (ethConfig.chainId || 1).toString(16);
+    this.rpc = new RPCServer(ethConfig.rpcUrl);
     this.isDebug = !!config.isDebug;
+    this.config = ethConfig;
   }
 
   request(payload) {
@@ -149,6 +151,11 @@ class FoxWeb3Provider extends BaseProvider {
         if (error) {
           reject(error);
         } else {
+          if (payload.method === "eth_requestAccounts") {
+            Utils.emitConnectEvent(this.chain, this.config, {
+              address: data[0],
+            });
+          }
           resolve(data);
         }
       });

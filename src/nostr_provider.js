@@ -14,6 +14,7 @@ export class NOSTRProvider extends BaseProvider {
     const nostrConfig = config[this.chain];
     this.publicKey = nostrConfig.publicKey;
     this.isConnected = !!this.publicKey;
+    this.config = nostrConfig;
   }
 
   nip04 = {
@@ -27,11 +28,18 @@ export class NOSTRProvider extends BaseProvider {
 
   async getPublicKey() {
     if (this.publicKey) {
+      Utils.emitConnectEvent(this.chain, this.config, {
+        address: this.publicKey,
+      });
       return this.publicKey;
     }
     let account = await this.send("getPublicKey");
     if (account) {
+      this.publicKey = account;
       this.isConnected = true;
+      Utils.emitConnectEvent(this.chain, this.config, {
+        address: account,
+      });
     }
     return account;
   }

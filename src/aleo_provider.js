@@ -24,6 +24,7 @@ class FoxAleoProvider extends BaseProvider {
     const aleoConfig = config[this.chain];
     this.setAddress(aleoConfig.address);
     this.isDebug = !!config.isDebug;
+    this.config = aleoConfig;
   }
 
   emitConnect(address) {
@@ -77,7 +78,13 @@ class FoxAleoProvider extends BaseProvider {
   }
 
   async connect(decryptPermission, network, programs) {
-    return this.send("connect", { decryptPermission, network, programs });
+    const result = await this.send("connect", {
+      decryptPermission,
+      network,
+      programs,
+    });
+    Utils.emitConnectEvent(this.chain, this.config, { address: result });
+    return result;
   }
 
   async disconnect() {

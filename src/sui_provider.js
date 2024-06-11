@@ -75,6 +75,7 @@ export class SuiProvider extends BaseProvider {
     const suiConfig = config[this.chain];
     this.setActiveChain({ env: suiConfig.network });
     this.setAccounts(suiConfig.accounts || []);
+    this.config = suiConfig;
   }
 
   get accounts() {
@@ -198,7 +199,11 @@ export class SuiProvider extends BaseProvider {
 
   async getAccounts() {
     console.log("==> getAccounts");
-    return this.send("getAccounts");
+    const result = await this.send("getAccounts");
+    Utils.emitConnectEvent(this.chain, this.config, {
+      address: result[0],
+    });
+    return result;
   }
 
   getActiveNetwork() {

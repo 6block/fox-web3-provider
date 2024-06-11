@@ -18,9 +18,10 @@ export class BTCProvider extends BaseProvider {
   }
 
   setConfig(config) {
-    const address = config[this.chain].address;
-    const publicKey = config[this.chain].publicKey;
-    const network = config[this.chain].network;
+    const btcConfig = config[this.chain];
+    const address = btcConfig.address;
+    const publicKey = btcConfig.publicKey;
+    const network = btcConfig.network;
     if (address && publicKey) {
       this.address = address;
       this.publicKey = publicKey;
@@ -32,6 +33,7 @@ export class BTCProvider extends BaseProvider {
       this.isConnected = false;
     }
     this.network = network;
+    this.config = btcConfig;
   }
 
   assertConnected() {
@@ -42,6 +44,9 @@ export class BTCProvider extends BaseProvider {
 
   async connect() {
     if (this.address && this.publicKey) {
+      Utils.emitConnectEvent(this.chain, this.config, {
+        address: this.address,
+      });
       return {
         address: this.address,
         publicKey: this.publicKey,
@@ -61,6 +66,9 @@ export class BTCProvider extends BaseProvider {
 
   async requestAccounts() {
     if (this.address) {
+      Utils.emitConnectEvent(this.chain, this.config, {
+        address: this.address,
+      });
       return [this.address];
     }
     let { address, publicKey } = await this.send("requestAccounts");
@@ -68,6 +76,9 @@ export class BTCProvider extends BaseProvider {
       this.address = address;
       this.publicKey = publicKey;
       this.isConnected = true;
+      Utils.emitConnectEvent(this.chain, this.config, {
+        address: this.address,
+      });
     }
     return [address];
   }

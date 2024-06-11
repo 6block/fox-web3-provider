@@ -29,10 +29,16 @@ class FoxWalletAptosProvider {
   constructor(config) {
     this.isFoxwallet = true;
     this.chain = "APTOS";
-    this.connected = false;
-    this.connectedAccount = config[this.chain].connectedAccount;
     this.callbacks = new Map();
     this.networkChangeCallbacks = [];
+    this.setConfig(config);
+  }
+
+  setConfig(config) {
+    const aptosConfig = config[this.chain];
+    this.connectedAccount = aptosConfig.connectedAccount;
+    this.connected = !!this.connectedAccount;
+    this.config = aptosConfig;
   }
 
   invokeRNMethod(payload) {
@@ -83,7 +89,12 @@ class FoxWalletAptosProvider {
     }
   }
 
-  connect() {
+  async connect() {
+    if (this.connectedAccount) {
+      Utils.emitConnectEvent(this.chain, this.config, this.connectedAccount);
+      return this.connectedAccount;
+    }
+
     return new Promise((resolve, reject) => {
       const callbackId = Utils.genId();
       let object = {
@@ -95,6 +106,11 @@ class FoxWalletAptosProvider {
         .then((connectedAccount) => {
           this.connected = true;
           this.connectedAccount = connectedAccount;
+          Utils.emitConnectEvent(
+            this.chain,
+            this.config,
+            this.connectedAccount
+          );
           resolve(connectedAccount);
         })
         .catch((error) => {
