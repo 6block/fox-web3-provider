@@ -84,6 +84,11 @@ export class BTCProvider extends BaseProvider {
   }
 
   async getAccounts() {
+    if (this.address) {
+      Utils.emitConnectEvent(this.chain, this.config, {
+        address: this.address,
+      });
+    }
     return this.address ? [this.address] : [];
   }
 

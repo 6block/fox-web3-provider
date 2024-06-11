@@ -516,6 +516,11 @@ class FoxQtumProvider extends BaseProvider {
   }
 
   eth_accounts() {
+    if (this.ethAddress) {
+      Utils.emitConnectEvent(this.chain, this.config, {
+        address: this.ethAddress,
+      });
+    }
     return this.ethAddress ? [this.ethAddress] : [];
   }
 

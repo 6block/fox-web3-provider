@@ -238,6 +238,11 @@ class FoxWeb3Provider extends BaseProvider {
   }
 
   eth_accounts() {
+    if (this.address) {
+      Utils.emitConnectEvent(this.chain, this.config, {
+        address: this.address,
+      });
+    }
     return this.address ? [this.address] : [];
   }
 

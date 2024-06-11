@@ -123,6 +123,7 @@ class FoxWalletAptosProvider {
   account() {
     return new Promise((resolve, reject) => {
       if (this.connectedAccount) {
+        Utils.emitConnectEvent(this.chain, this.config, this.connectedAccount);
         resolve(this.connectedAccount);
       } else {
         reject(new PetraError("Unauthorized"));
