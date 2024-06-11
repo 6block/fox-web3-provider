@@ -40,17 +40,24 @@ class FoxWalletSolanaProvider extends EventEmitter {
         }
       : null;
     this.isConnected = !!this.publicKey;
+    this.config = solConfig;
   }
 
   connect(hiddenOption) {
     if (this.publicKey) {
       this.emit("connect", this.publicKey);
+      Utils.emitConnectEvent(this.chain, this.config, {
+        address: this.publicKey.toBase58(),
+      });
       return;
     }
     return new Promise((resolve, reject) => {
       this.getAccount(hiddenOption)
         .then((account) => {
           this.isConnected = true;
+          Utils.emitConnectEvent(this.chain, this.config, {
+            address: account,
+          });
           this.publicKey = {
             toBytes: () => {
               return bs58Decode(account);
@@ -138,6 +145,9 @@ class FoxWalletSolanaProvider extends EventEmitter {
       };
       this.invokeRNMethod(object)
         .then((account) => {
+          Utils.emitConnectEvent(this.chain, this.config, {
+            address: account,
+          });
           resolve(JSON.parse(account));
         })
         .catch((error) => {

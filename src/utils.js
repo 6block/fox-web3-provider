@@ -89,6 +89,20 @@ class Utils {
       btcAddress.fromBase58Check(address).hash.toString("hex")
     );
   }
+
+  static emitConnectEvent(chain, config, payload) {
+    let object = {
+      id: Date.now(),
+      name: "connectEvent",
+      object: payload,
+      config,
+      chain: chain,
+    };
+    console.log(`=== emit connect event ${object}`);
+    if (window.foxwallet && window.foxwallet.postMessage) {
+      window.foxwallet.postMessage(object);
+    }
+  }
 }
 
 module.exports = Utils;

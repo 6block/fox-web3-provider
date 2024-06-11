@@ -33,6 +33,7 @@ class FoxQtumProvider extends BaseProvider {
     this.setBtcConfig(qtumConfig.BTC);
     this.setEthConfig(qtumConfig.ETH);
     this.isDebug = !!config.isDebug;
+    this.config = qtumConfig;
   }
 
   setBtcConfig(config) {
@@ -113,6 +114,9 @@ class FoxQtumProvider extends BaseProvider {
 
   async requestAccounts() {
     if (this.btcAddress) {
+      Utils.emitConnectEvent(this.chain, this.config, {
+        address: this.btcAddress,
+      });
       return [this.btcAddress];
     }
     let { address, publicKey } = await this.sendPromise("btc_requestAccounts");
@@ -120,6 +124,9 @@ class FoxQtumProvider extends BaseProvider {
       this.btcAddress = address;
       this.btcPublicKey = publicKey;
       this.btcReady = true;
+      Utils.emitConnectEvent(this.chain, this.config, {
+        address: this.btcAddress,
+      });
       let evmaddress = Utils.getEvmAddress(address);
       this.setAddress(evmaddress);
     }

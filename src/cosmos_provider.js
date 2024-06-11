@@ -32,6 +32,7 @@ export class FoxWalletCosmosWeb3Provider extends BaseProvider {
       }
     });
     this.accounts = formatedAccount;
+    this.config = config[this.chain];
   }
 
   enable(chainIds) {
@@ -50,6 +51,10 @@ export class FoxWalletCosmosWeb3Provider extends BaseProvider {
 
   async getKey(chainId) {
     if (this.accounts[chainId] && this.accounts[chainId].address) {
+      Utils.emitConnectEvent(this.chain, this.config, {
+        chainId,
+        address: this.accounts[chainId].address,
+      });
       return this.accounts[chainId];
     }
     const account = await this._request("requestAccounts", {
@@ -66,6 +71,10 @@ export class FoxWalletCosmosWeb3Provider extends BaseProvider {
         pubKey: Buffer.from(account.pubKey, "hex"),
       };
       this.accounts[chainId] = formatAccount;
+      Utils.emitConnectEvent(this.chain, this.config, {
+        chainId,
+        address: formatAccount.address,
+      });
       return formatAccount;
     }
   }
