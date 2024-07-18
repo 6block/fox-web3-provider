@@ -2998,9 +2998,9 @@ form-data@^3.0.0:
     combined-stream "^1.0.8"
     mime-types "^2.1.12"
 
-"foxwallet-standard-wallet@git+https://github.com/foxwallet/solana-wallet-standard.git#a76f078":
-  version "0.1.0"
-  resolved "git+https://github.com/foxwallet/solana-wallet-standard.git#a76f0789674c659617089ff654c50da9b27f1f66"
+"foxwallet-standard-wallet@git+https://github.com/foxwallet/solana-wallet-standard.git#0d3029f":
+  version "0.2.0"
+  resolved "git+https://github.com/foxwallet/solana-wallet-standard.git#0d3029f7c0c66183c451d1c51b0c14dd27a997fc"
   dependencies:
     "@solana/wallet-standard-features" "1.0.0"
     "@solana/web3.js" "1.73.2"

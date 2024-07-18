@@ -30,7 +30,7 @@
     "buffer": "^5.6.0",
     "eventemitter3": "^4.0.7",
     "events": "^3.2.0",
-    "foxwallet-standard-wallet": "git+https://github.com/foxwallet/solana-wallet-standard.git#a76f078",
+    "foxwallet-standard-wallet": "git+https://github.com/foxwallet/solana-wallet-standard.git#0d3029f",
     "isutf8": "^3.1.1"
   },
   "devDependencies": {
