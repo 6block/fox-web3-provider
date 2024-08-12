@@ -35,7 +35,11 @@ export class FoxWalletCosmosWeb3Provider extends BaseProvider {
     this.config = config[this.chain];
   }
 
+  // chainIds: string|string[]
   enable(chainIds) {
+    if (typeof chainIds === "string") {
+      chainIds = [chainIds];
+    } 
     const nonExistChainId = chainIds.find(
       (chainId) => !this.availableChainIds.includes(chainId)
     );
@@ -172,7 +176,7 @@ export class FoxWalletCosmosWeb3Provider extends BaseProvider {
           // throw errors for unsupported methods
           throw new ProviderRpcError(
             4200,
-            `Trust does not support calling ${payload.method} yet.`
+            `FoxWallet does not support calling ${payload.method} yet.`
           );
       }
     });
