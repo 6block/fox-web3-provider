@@ -13,6 +13,7 @@ import { NOSTRProvider } from "./nostr_provider";
 import { CustomProvider } from "./custom_provider";
 import FoxCosmosProvider from "./cosmos_provider";
 import { TONProvider } from "./ton_provider";
+import { AppProvider } from "./app_provider";
 
 window.foxwallet = {
   Provider: FoxWeb3Provider,
@@ -50,3 +51,4 @@ const initSuiWallet = (config) => {
 window.initSuiWallet = initSuiWallet;
 
 window.foxwallet.custom = new CustomProvider();
+window.foxwallet.app = new AppProvider();
