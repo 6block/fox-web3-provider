@@ -36,6 +36,27 @@ export class AppProvider extends BaseProvider  {
     this.send("linkTo", url);
   }
 
+  clipboardSetString(text) {
+    this.send("clipboardSetString", text);
+  }
+       
+  async clipboardGetString() {
+    return await this.send("clipboardGetString");
+  }
+
+  toast(options) {
+    this.send("toast", options);
+  }
+
+  appStateChanged(state) {
+    this.emit("appStateChanged", state);
+  }
+
+  on(event, listener) {
+    super.on(event, listener);
+    return () => super.off(event, listener);
+  }
+
   send(method, params) {
     const id = Utils.genId();
     return new Promise((resolve, reject) => {
