@@ -7,11 +7,9 @@ export class FoxTronProvider extends BaseProvider  {
     this.isFoxWallet = true;
     this.chain = "TRON";
     this.callbacks = new Map();
-    this.isConnected = false;
-    this.address = false;
   }
 
-  postConnectMessage() {
+  emitConnect() {
     window.postMessage({
       message: {
         action: "connect"
@@ -20,48 +18,41 @@ export class FoxTronProvider extends BaseProvider  {
     });
   }
 
-  postDisconnectMessage() {
+  emitDisconnect() {
     window.postMessage({
       message: {
         action: "disconnect"
       },
       isTronLink: true
     });
-    this.address = false;
-    this.isConnected = false;
   }
 
-  postAccountsChangedMessage(addresses) {
+  emitAccountsChanged(addresses) {
     if (!addresses) return;
-
     const targetAddress = addresses[0] || false;
-    this.address = targetAddress;
-    this.isConnected = true;
-
-    const accountsChanged = this.address !== targetAddress;
-    if (accountsChanged) {
-      window.postMessage({
-        message: {
-          action: "accountsChanged",
-          data: {
-            address: targetAddress
-          }
-        },
-        isTronLink: true
-      });
-    }
+    window.postMessage({
+      message: {
+        action: "accountsChanged",
+        data: {
+          address: targetAddress
+        }
+      },
+      isTronLink: true
+    });
   }
 
   request(payload) {
     switch (payload.method) {
       case "tron_requestAccounts": {
+        if (!window.foxwallet.tronLink.tronWeb) {
+          throw new Error("Couldn't find property 'tronWeb' in window.foxwallet.tronLink, please reopen current page again.");
+        }
         return this._request(payload.method, payload)
           .then(res => {
-            this.isConnected = res.code === 200;
             if (res.code === 200) {
-              this.postConnectMessage();
+              this.emitConnect();
             } else if (res.code === 4001) {
-              this.postDisconnectMessage();
+              this.emitDisconnect();
             }
             return res;
           });
