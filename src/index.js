@@ -14,6 +14,7 @@ import { CustomProvider } from "./custom_provider";
 import FoxCosmosProvider from "./cosmos_provider";
 import { TONProvider } from "./ton_provider";
 import { AppProvider } from "./app_provider";
+import { FoxTronProvider } from "./tron_provider";
 
 window.foxwallet = {
   Provider: FoxWeb3Provider,
@@ -25,6 +26,7 @@ window.foxwallet = {
   NostrProvider: NOSTRProvider,
   TonProvider: TONProvider,
   CosmosProvider: FoxCosmosProvider,
+  TronProvider: FoxTronProvider,
   postMessage: null,
 };
 
