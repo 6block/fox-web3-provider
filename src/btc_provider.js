@@ -22,6 +22,7 @@ export class BTCProvider extends BaseProvider {
     const address = btcConfig.address;
     const publicKey = btcConfig.publicKey;
     const network = btcConfig.network;
+    const chainInfo = btcConfig.chainInfo;
     if (address && publicKey) {
       this.address = address;
       this.publicKey = publicKey;
@@ -33,6 +34,7 @@ export class BTCProvider extends BaseProvider {
       this.isConnected = false;
     }
     this.network = network;
+    this.chainInfo = chainInfo;
     this.config = btcConfig;
   }
 
@@ -40,6 +42,11 @@ export class BTCProvider extends BaseProvider {
     if (!this.isConnected) {
       throw new ProviderRpcError(ErrorMap.Unauthorized);
     }
+  }
+
+  async getVersion() {
+    // this is just for unisat api alignment
+    return "1.5.0";
   }
 
   async connect() {
@@ -107,6 +114,17 @@ export class BTCProvider extends BaseProvider {
     return this.send("switchNetwork", network);
   }
 
+  async getChain() {
+    if (this.chainInfo) {
+      return this.chainInfo;
+    }
+    return this.send("getChain");
+  }
+
+  async switchChain(chain) {
+    return this.send("switchChain", chain);
+  }
+
   async signMessage(message, option) {
     this.assertConnected();
     return this.send("signMessage", { message, option });
@@ -128,6 +146,16 @@ export class BTCProvider extends BaseProvider {
       toAddress,
       satoshis,
       option,
+    });
+  }
+
+  async sendRunes(toAddress, runeId, amount, options) {
+    this.assertConnected();
+    return this.send("sendRunes", {
+      toAddress,
+      runeId,
+      amount,
+      options,
     });
   }
 
@@ -163,7 +191,13 @@ export class BTCProvider extends BaseProvider {
   }
 
   networkChanged(network) {
+    this.network = network;
     this.emit("networkChanged", network);
+  }
+
+  chainChanged(chainInfo) {
+    this.chainInfo = chainInfo;
+    this.emit("chainChanged", chainInfo);
   }
 
   accountsChanged(addresses) {
