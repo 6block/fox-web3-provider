@@ -195,6 +195,10 @@ class FoxWeb3Provider extends BaseProvider {
           return this.wallet_addEthereumChain(payload);
         case "wallet_switchEthereumChain":
           return this.wallet_switchEthereumChain(payload);
+        case "wallet_requestPermissions":
+          return this.wallet_requestPermissions(payload);
+        case "wallet_getPermissions":
+          return this.wallet_getPermissions(payload);
         case "eth_newFilter":
         case "eth_newBlockFilter":
         case "eth_newPendingTransactionFilter":
@@ -380,6 +384,14 @@ class FoxWeb3Provider extends BaseProvider {
 
   wallet_switchEthereumChain(payload) {
     this.postMessage("switchEthereumChain", payload.id, payload.params[0]);
+  }
+
+  wallet_requestPermissions(payload) {
+    this.postMessage("requestPermissions", payload.id, payload.params[0]);
+  }
+
+  wallet_getPermissions(payload) {
+    this.postMessage("getPermissions", payload.id);
   }
 
   /**
