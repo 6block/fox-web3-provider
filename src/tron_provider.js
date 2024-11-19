@@ -7,6 +7,7 @@ export class FoxTronProvider extends BaseProvider  {
     this.isFoxWallet = true;
     this.chain = "TRON";
     this.callbacks = new Map();
+    this.address = null;
   }
 
   emitConnect() {
@@ -27,15 +28,21 @@ export class FoxTronProvider extends BaseProvider  {
     });
   }
 
-  emitAccountsChanged(addresses) {
-    if (!addresses) return;
-    const targetAddress = addresses[0] || false;
+  updateAddress(address) {
+    if (!address) return;
+    window.foxwallet.tronLink.tronWeb?.setAddress(address);
+
+    if (this.address && this.address !== address) {
+      this.emitAccountsChanged([address]);
+    }
+    this.address = address;
+  }
+
+  emitAccountsChanged(address) {
     window.postMessage({
       message: {
         action: "accountsChanged",
-        data: {
-          address: targetAddress
-        }
+        data: { address }
       },
       isTronLink: true
     });
@@ -53,6 +60,7 @@ export class FoxTronProvider extends BaseProvider  {
               this.emitConnect();
             } else if (res.code === 4001) {
               this.emitDisconnect();
+              this.address = null;
             }
             return res;
           });
