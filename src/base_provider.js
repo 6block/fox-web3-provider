@@ -12,12 +12,13 @@ class BaseProvider extends EventEmitter {
   /**
    * @private Internal js -> native message handler
    */
-  postMessage(handler, id, data) {
+  postMessage(handler, id, data, requestId) {
     let object = {
       id: id,
       name: handler,
       object: data,
       chain: this.chain,
+      requestId, // for ton as event counter
     };
     if (window.foxwallet.postMessage) {
       window.foxwallet.postMessage(object);
