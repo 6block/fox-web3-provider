@@ -1,11 +1,13 @@
 import BaseProvider from "./base_provider";
 import Utils from "./utils";
+import ProviderRpcError from "./error";
 
 const CURRENT_PROTOCOL_VERSION = 2;
 
 export class TONProvider extends BaseProvider {
   constructor(config) {
     super(config);
+    this.requestId = 0;
     this.isFoxWallet = true;
     this.chain = "TON";
     this.callbacks = new Map();
@@ -27,24 +29,19 @@ export class TONProvider extends BaseProvider {
 
   // connect(protocolVersion: number, message: ConnectRequest): Promise<ConnectEvent>;
   async connect(protocolVersion, message, auto)  {
-    console.log("connect===>", protocolVersion, message);
     return await this.sendRNMethod("connect",{protocolVersion, message, auto});
   }
   // restoreConnection(): Promise<ConnectEvent>;
   async restoreConnection(){
-    console.log("restoreConnection===>");
     return await this.sendRNMethod("restoreConnection");
 
   }
   // send(message: AppRequest): Promise<WalletResponse>;
   async send(message){
-    console.log("send===>", message);
-    console.log("send===> json:", JSON.stringify(message));
     return await this.sendRNMethod("send", { message });
   }
   // disconnect(): Promise<void>;
   async disconnect(){
-    console.log("disconnect===>");
     return await this.sendRNMethod("disconnect");
   }
 
@@ -62,7 +59,6 @@ export class TONProvider extends BaseProvider {
   }
 
   emit(event, ...args) {
-    console.log(`=== emit event ${event} ${args}`);
     super.emit(event, ...args);
     this.dappListeners.forEach(listener => listener({event,...args}));
   }
@@ -81,7 +77,20 @@ export class TONProvider extends BaseProvider {
           resolve(data);
         }
       });
-      this.postMessage(method, id, params);
+      this.postMessage(method, id, params, this.requestId);
+      this.requestId += 1;
     });
+  }
+
+  sendError(id, message, code) {
+    if (typeof message !== "string") {
+      console.warn("sendError now takes string message and code");
+      return;
+    }
+    let callback = this.callbacks.get(id);
+    if (callback) {
+      callback(new ProviderRpcError(code, message));
+      this.callbacks.delete(id);
+    }
   }
 }
