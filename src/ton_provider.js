@@ -29,12 +29,23 @@ export class TONProvider extends BaseProvider {
 
   // connect(protocolVersion: number, message: ConnectRequest): Promise<ConnectEvent>;
   async connect(protocolVersion, message, auto)  {
-    return await this.sendRNMethod("connect",{protocolVersion, message, auto});
+    return await this.sendRNMethod("connect",{protocolVersion, message, auto})
+      .then((res) => {
+        Utils.emitConnectEvent(this.chain, this.config, {
+          address: this.config.address,
+        });
+        return res;
+      });
   }
   // restoreConnection(): Promise<ConnectEvent>;
   async restoreConnection(){
-    return await this.sendRNMethod("restoreConnection");
-
+    return await this.sendRNMethod("restoreConnection")
+      .then((res) => {
+        Utils.emitConnectEvent(this.chain, this.config, {
+          address: this.config.address,
+        });
+        return res;
+      });
   }
   // send(message: AppRequest): Promise<WalletResponse>;
   async send(message){

@@ -17,6 +17,9 @@ export class FoxTronProvider extends BaseProvider  {
       },
       isTronLink: true
     });
+    Utils.emitConnectEvent(this.chain, {}, {
+      address: this.address,
+    });
   }
 
   emitDisconnect() {

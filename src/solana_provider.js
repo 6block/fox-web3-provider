@@ -146,7 +146,7 @@ class FoxWalletSolanaProvider extends EventEmitter {
       this.invokeRNMethod(object)
         .then((account) => {
           Utils.emitConnectEvent(this.chain, this.config, {
-            address: account,
+            address: JSON.parse(account),
           });
           resolve(JSON.parse(account));
         })
