@@ -29,7 +29,7 @@ export class NOSTRProvider extends BaseProvider {
   async getPublicKey() {
     if (this.publicKey) {
       Utils.emitConnectEvent(this.chain, this.config, {
-        address: this.publicKey,
+        address: this.config.address,
       });
       return this.publicKey;
     }
@@ -38,7 +38,7 @@ export class NOSTRProvider extends BaseProvider {
       this.publicKey = account;
       this.isConnected = true;
       Utils.emitConnectEvent(this.chain, this.config, {
-        address: account,
+        address: this.config.address,
       });
     }
     return account;
